@@ -6,8 +6,6 @@ import sbt._
 import Keys._
 import complete.DefaultParsers._
 import java.io.File
-import scala.sys.process._
-import scala.sys.process.{Process => Proc}
 import org.apache.commons.io._
 
 
@@ -98,15 +96,16 @@ object MechaSuperRepoPlugin extends Plugin {
         else try {
           val url = repo.origin
           repodir.mkdir()
-          println("cloning")
-          Proc(s"git clone $url .", Some(repodir)).exec((msg: String) => log.info(msg), (msg: String) => log.error(msg))
-          println("done")
+          val code = Process("git clone $url .").!
+          if (code != 0) sys.error("Clone failed ($code).")
           
           val gitignoreSample = new File(repodir, ".gitignore-SAMPLE")
           val gitignore = new File(repodir, ".gitignore")
           FileUtils.copyFile(gitignoreSample, gitignore)
         } catch {
-          case _: Throwable => FileUtils.deleteDirectory(repodir)
+          case t: Throwable =>
+            log.error(t.getMessage)
+            FileUtils.deleteDirectory(repodir)
         }
     }
   }

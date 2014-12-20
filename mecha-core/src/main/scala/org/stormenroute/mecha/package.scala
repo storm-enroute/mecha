@@ -2,7 +2,6 @@ package org.stormenroute
 
 
 
-import scala.sys.process._
 
 
 
@@ -19,13 +18,5 @@ package mecha {
 
 
 package object mecha {
-
-  implicit class ProcessBuilderOps(val pb: ProcessBuilder) {
-    def exec(fout: String => Unit, ferr: String => Unit) = {
-      val logger = ProcessLogger(fout, ferr)
-      val exitcode = pb.!(logger)
-      if (exitcode != 0) throw new RuntimeException("Failed with $exitcode.")
-    }
-  }
 
 }
