@@ -98,9 +98,9 @@ object MechaSuperRepoPlugin extends Plugin {
         else try {
           val url = repo.origin
           repodir.mkdir()
-          Proc(s"git clone $url .", Some(repodir)).exec()
+          Proc(s"git clone $url .", Some(repodir)).exec((msg: String) => log.info(msg), (msg: String) => log.error(msg))
         } catch {
-          case e: Throwable => FileUtils.deleteDirectory(repodir)
+          case _: Throwable => FileUtils.deleteDirectory(repodir)
         }
     }
   }
