@@ -7,9 +7,9 @@ import java.io._
 
 
 
-object MechaCoreBuild extends Build {
+object MechaBuild extends Build {
 
-  /* mecha */
+  /* mecha-core */
 
   def versionFromFile(filename: String): String = {
     val fis = new FileInputStream(filename)
@@ -35,10 +35,31 @@ object MechaCoreBuild extends Build {
     organization := "com.storm-enroute"
   )
 
-  lazy val mechaCorePlugin = Project(
+  lazy val mechaCore = Project(
     "mecha-core",
-    file("."),
+    file("mecha-core"),
     settings = mechaCoreSettings
+  )
+
+  /* mecha-super-plugin */
+
+  val mechaSuperRepoPluginSettings = Defaults.defaultSettings ++ Seq(
+    sbtPlugin := true,
+    name := "mecha-super-plugin",
+    scalaVersion := mechaScalaVersion,
+    version <<= frameworkVersion,
+    organization := "com.storm-enroute",
+    libraryDependencies ++= Seq(
+      "commons-io" % "commons-io" % "2.4"
+    )
+  )
+
+  lazy val mechaSuperRepoPlugin = Project(
+    "mecha-super-plugin",
+    file("mecha-super-plugin"),
+    settings = mechaSuperRepoPluginSettings
+  ) dependsOn (
+    mechaCore
   )
 
 }
