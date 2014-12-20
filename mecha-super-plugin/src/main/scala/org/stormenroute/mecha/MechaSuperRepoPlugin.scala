@@ -99,6 +99,10 @@ object MechaSuperRepoPlugin extends Plugin {
           val url = repo.origin
           repodir.mkdir()
           Proc(s"git clone $url .", Some(repodir)).exec((msg: String) => log.info(msg), (msg: String) => log.error(msg))
+
+          val gitignoreSample = new File(repodir, ".gitignore-SAMPLE")
+          val gitignore = new File(repodir, ".gitignore")
+          FileUtils.copy(gitignoreSample, gitignore)
         } catch {
           case _: Throwable => FileUtils.deleteDirectory(repodir)
         }
