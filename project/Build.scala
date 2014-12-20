@@ -47,7 +47,7 @@ object MechaBuild extends Build {
 
   /* mecha-super-plugin */
 
-  val mechaSuperRepoPluginSettings = Defaults.defaultSettings ++ Seq(
+  val mechaSuperPluginSettings = Defaults.defaultSettings ++ Seq(
     sbtPlugin := true,
     name := "mecha-super-plugin",
     scalaVersion := mechaScalaVersion,
@@ -58,10 +58,31 @@ object MechaBuild extends Build {
     )
   )
 
-  lazy val mechaSuperRepoPlugin = Project(
+  lazy val mechaSuperPlugin = Project(
     "mecha-super-plugin",
     file("mecha-super-plugin"),
-    settings = mechaSuperRepoPluginSettings
+    settings = mechaSuperPluginSettings
+  ) dependsOn (
+    mechaCore
+  )
+
+  /* mecha-repo-plugin */
+
+  val mechaRepoPluginSettings = Defaults.defaultSettings ++ Seq(
+    sbtPlugin := true,
+    name := "mecha-repo-plugin",
+    scalaVersion := mechaScalaVersion,
+    version <<= frameworkVersion,
+    organization := "com.storm-enroute",
+    libraryDependencies ++= Seq(
+      "commons-io" % "commons-io" % "2.4"
+    )
+  )
+
+  lazy val mechaRepoPlugin = Project(
+    "mecha-repo-plugin",
+    file("mecha-repo-plugin"),
+    settings = mechaRepoPluginSettings
   ) dependsOn (
     mechaCore
   )
