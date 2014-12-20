@@ -104,7 +104,7 @@ object MechaSuperRepoPlugin extends Plugin {
           
           val gitignoreSample = new File(repodir, ".gitignore-SAMPLE")
           val gitignore = new File(repodir, ".gitignore")
-          FileUtils.copy(gitignoreSample, gitignore)
+          FileUtils.copyFile(gitignoreSample, gitignore)
         } catch {
           case _: Throwable => FileUtils.deleteDirectory(repodir)
         }
