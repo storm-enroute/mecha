@@ -90,9 +90,10 @@ object MechaSuperRepoPlugin extends Plugin {
     val log = streams.value.log
     val dir = baseDirectory.value
     for (arg <- args) reposKey.value.get(arg) match {
-      case None => log.error(s"Project $arg does not exist.")
+      case None =>
+        log.error(s"Project $arg does not exist.")
       case Some(repo) =>
-        val repodir = new File(s"$dir/$repo")
+        val repodir = new File(s"$dir/$arg")
         if (repodir.exists) log.warn(s"Project $arg already tracked.")
         else try {
           val url = repo.origin
