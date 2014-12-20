@@ -32,7 +32,11 @@ object MechaBuild extends Build {
     name := "mecha-core",
     scalaVersion := mechaScalaVersion,
     version <<= frameworkVersion,
-    organization := "com.storm-enroute"
+    organization := "com.storm-enroute",
+    libraryDependencies ++= Seq(
+      "io.spray" %%  "spray-json" % "1.3.1",
+      "commons-io" % "commons-io" % "2.4"
+    )
   )
 
   lazy val mechaCore = Project(

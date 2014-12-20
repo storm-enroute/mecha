@@ -6,13 +6,38 @@ import sbt._
 import Keys._
 import complete.DefaultParsers._
 import java.io.File
+import scala.collection._
 import org.apache.commons.io._
 
 
 
-/** Added to the root project of the superrepository.
+/** Mixed in with the superrepository root project. */
+trait MechaSuperBuild extends Build {
+  val supername: String
+  val superdirectory: File
+  val supersettings: Seq[Setting[_]]
+  val subrepositories: Map[String, Repo]
+  override def projects: Seq[Project] = {
+    val otherprojects = super.projects
+    val subprojects = for ((name, _) <- subrepositories) yield {
+      RootProject(file(name))
+    }
+    val superproject = subprojects.foldLeft(Project(
+      supername,
+      superdirectory,
+      settings = supersettings
+    ))(_ dependsOn _)
+    otherprojects ++ Seq(superproject)
+  }
+  override def settings = super.settings ++ Seq(
+    MechaSuperPlugin.reposKey := subrepositories
+  )
+}
+
+
+/** Added to the root build of the superrepository.
  */
-object MechaSuperRepoPlugin extends Plugin {
+object MechaSuperPlugin extends Plugin {
 
   val reposKey = SettingKey[Map[String, Repo]](
     "mecha-repos", "Contains information about all the repos."
@@ -34,7 +59,7 @@ object MechaSuperRepoPlugin extends Plugin {
         for (mirror <- repo.mirrors) { 
           log.info(s"  mirror: $mirror")
         }
-        log.info(s"dependencies: ${repo.dependencies.mkString(", ")}")
+        log.info(s"  dependencies: ${repo.dependencies.mkString(", ")}")
       }
     }
   }
@@ -127,16 +152,6 @@ object MechaSuperRepoPlugin extends Plugin {
     publishTask,
     trackTask,
     testTask
-  )
-
-}
-
-
-/** Added to each repository inside the superrepository.
- */
-object MechaRepoPlugin extends Plugin {
-
-  override val projectSettings = Seq(
   )
 
 }
