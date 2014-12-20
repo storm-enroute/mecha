@@ -1,0 +1,7 @@
+
+# configuration files
+config.sbt
+
+# workflow stuff
+.gitignore
+target
