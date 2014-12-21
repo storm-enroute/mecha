@@ -133,6 +133,22 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
+  val diffKey = TaskKey[Unit](
+    "mecha-diff",
+    "Shows the diff of the current working tree in all repositories."
+  )
+
+  val diffTask = diffKey := {
+    // check if repos are clean
+    val log = streams.value.log
+    val repos = trackedReposKey.value
+    for ((name, repo) <- repos) {
+      log.info(s"--- diff for repo '$name' in '${repo.dir}' ---")
+      log.info(Git.diff(repo.dir))
+      log.info(s"--- end of diff for repo '$name' in '${repo.dir}'")
+    }
+  }
+
   val pullKey = TaskKey[Unit](
     "mecha-pull",
     "For every project, pulls the corresponding branch from the origin repository."
@@ -222,13 +238,14 @@ object MechaSuperPlugin extends Plugin {
       if (!Git.addAll(repo.dir)) {
         log.error(s"Could not stage in '${repo.dir}'.")
       } else {
-        log.info(s"Diff for '${repo.dir}':")
+        log.info(s"--- diff for '$name' in '${repo.dir}' ---")
         log.info(Git.diff(repo.dir))
         SimpleReader.readLine("Commit message (empty aborts): ") match {
           case Some(msg) =>
             if (!Git.commit(repo.dir, msg)) log.error("Could not commit.")
           case None =>
         }
+        log.info("--- end of diff for '$name' in '${repo.dir}' ---")
       }
     }
   }
@@ -341,15 +358,6 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
-  val publishKey = TaskKey[Unit](
-    "mecha-publish",
-    "Publishes the master branches of all repositories."
-  )
-
-  val publishTask = publishKey := {
-    ???
-  }
-
   val trackKey = InputKey[Unit](
     "mecha-track",
     "Tracks a repository."
@@ -392,10 +400,20 @@ object MechaSuperPlugin extends Plugin {
     ???
   }
 
+  val publishKey = TaskKey[Unit](
+    "mecha-publish",
+    "Publishes the master branches of all repositories."
+  )
+
+  val publishTask = publishKey := {
+    ???
+  }
+
   override val projectSettings = Seq(
     trackedReposTask,
     lsTask,
     statusTask,
+    diffTask,
     newBranchTask,
     branchTask,
     checkoutTask,
