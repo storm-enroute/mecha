@@ -392,28 +392,6 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
-  val testKey = TaskKey[Unit](
-    "mecha-test",
-    "Runs the main tests for all the repositories."
-  )
-
-  val testTask = testKey := {
-    val log = streams.value.log
-    val repos = trackedReposKey.value
-    for ((name, repo) <- repos) {
-
-    }
-  }
-
-  val publishKey = TaskKey[Unit](
-    "mecha-publish",
-    "Publishes the master branches of all repositories."
-  )
-
-  val publishTask = publishKey := {
-    ???
-  }
-
   override val projectSettings = Seq(
     trackedReposTask,
     lsTask,
@@ -428,9 +406,7 @@ object MechaSuperPlugin extends Plugin {
     pushMirrorTask,
     commitTask,
     mergeTask,
-    publishTask,
-    trackTask,
-    testTask
+    trackTask
   )
 
 }

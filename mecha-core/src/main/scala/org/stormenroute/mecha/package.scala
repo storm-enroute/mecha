@@ -19,7 +19,8 @@ package mecha {
   }
 
   /** Original repository within this multirepository, in the `dir` directory. */
-  case class Repo(dir: String, origin: String, mirrors: Seq[String], dependencies: Seq[Dep], tests: Seq[String])
+  case class Repo(dir: String, origin: String, mirrors: Seq[String],
+      dependencies: Seq[Dep])
 
   /** Utility methods for working with Git. */
   object Git {
@@ -115,8 +116,7 @@ package object mecha {
             dir = str(conf("dir")),
             origin = str(conf("origin")),
             mirrors = strings(conf("mirrors")),
-            dependencies = deps(conf("dependencies")),
-            tests = strings(conf("tests"))
+            dependencies = deps(conf("dependencies"))
           )
         }
     }
