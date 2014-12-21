@@ -382,7 +382,7 @@ object MechaSuperPlugin extends Plugin {
             val gitignoreSample = new File(repodir, ".gitignore-SAMPLE")
             val gitignore = new File(repodir, ".gitignore")
             FileUtils.copyFile(gitignoreSample, gitignore)
-            log.info(s"Please reload.")
+            log.info(s"Please reload the sbt shell.")
           }
         } catch {
           case t: Throwable =>
