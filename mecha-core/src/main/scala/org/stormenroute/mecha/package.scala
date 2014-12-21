@@ -43,7 +43,8 @@ package mecha {
     }
     def push(path: String, location: String): Boolean = {
       val dir = new File(path)
-      Process(s"git push -u $location", dir).! == 0
+      val branch = branchName(path)
+      Process(s"git push -u $location $branch", dir).! == 0
     }
     def addAll(path: String): Boolean = {
       val dir = new File(path)
@@ -60,6 +61,10 @@ package mecha {
     def branchExists(path: String, name: String): Boolean = {
       val dir = new File(path)
       Process(s"git show-ref --verify --quiet refs/heads/$path", dir).! == 0
+    }
+    def branchName(path: String): String = {
+      val dir = new File(path)
+      Process(s"git rev-parse --abbrev-ref HEAD", dir).!!
     }
     def checkout(path: String, name: String): Boolean = {
       val dir = new File(path)
