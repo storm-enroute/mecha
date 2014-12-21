@@ -113,8 +113,9 @@ object MechaSuperPlugin extends Plugin {
     ifClean(repos, log) {
       // push to remote branches
       for ((name, repo) <- repos) {
-        log.info(s"Push repo: ${repo.dir}")
-        if (!Git.push(repo.dir)) log.error(s"Push failed: ${repo.dir}")
+        log.info(s"Push '${repo.dir}' to origin...")
+        if (!Git.push(repo.dir, "origin"))
+          log.error(s"Push failed: ${repo.dir}")
       }
     }
   }
@@ -134,7 +135,16 @@ object MechaSuperPlugin extends Plugin {
   )
 
   val pushMirrorTask = pushMirrorKey := {
-    ???
+    val log = streams.value.log
+    val repos = trackedReposKey.value
+    ifClean(repos, log) {
+      // push to remote branches
+      for ((name, repo) <- repos; mirror <- repo.mirrors) {
+        log.info(s"Push '${repo.dir}' to '$mirror'...")
+        if (!Git.push(repo.dir, mirror))
+          log.error(s"Push failed: ${repo.dir}")
+      }
+    }
   }
 
   val publishKey = TaskKey[Unit](
