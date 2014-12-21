@@ -4,6 +4,7 @@ package org.stormenroute
 
 import java.io.File
 import scala.collection._
+import scala.sys.process._
 import org.apache.commons.io._
 import spray.json._
 import DefaultJsonProtocol._
@@ -19,6 +20,28 @@ package mecha {
 
   /** Original repository within this multirepository, in the `dir` directory. */
   case class Repo(dir: String, origin: String, mirrors: Seq[String], dependencies: Seq[Dep], tests: Seq[String])
+
+  /** Utility methods for working with Git. */
+  object Git {
+    def clone(url: String, dir: String): Boolean = {
+      Process(s"git clone $url $dir").! == 0
+    }
+    def isDirty(path: String): Boolean = {
+      isUncommitted(path) || isUnstaged(path)
+    }
+    def isUncommitted(path: String): Boolean = {
+      val dir = new File(path)
+      Process(s"git diff-index --quiet --cached HEAD", dir).! != 0
+    }
+    def isUnstaged(path: String): Boolean = {
+      val dir = new File(path)
+      Process(s"git diff-files --quiet", dir).! != 0
+    }
+    def pull(path: String): Boolean = {
+      val dir = new File(path)
+      Process(s"git pull", dir).! != 0
+    }
+  }
 
 }
 
