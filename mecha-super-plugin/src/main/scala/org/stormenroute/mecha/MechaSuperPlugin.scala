@@ -165,7 +165,21 @@ object MechaSuperPlugin extends Plugin {
   )
 
   val commitTask = commitKey := {
-    ???
+    val log = streams.value.log
+    val repos = trackedReposKey.value
+    for ((name, repo) <- repos; if Git.isDirty(repo.dir)) {
+      if (!Git.addAll(repo.dir)) {
+        log.error(s"Could not stage in '${repo.dir}'.")
+      } else {
+        log.info(s"Diff for '${repo.dir}':")
+        log.info(Git.diff(repo.dir))
+        SimpleReader.readLine("Commit message (empty aborts): ") match {
+          case Some(msg) =>
+            if (!Git.commit(repo.dir, msg)) log.error("Could not commit.")
+          case None =>
+        }
+      }
+    }
   }
 
   val publishKey = TaskKey[Unit](

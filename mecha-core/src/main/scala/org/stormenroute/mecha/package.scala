@@ -45,6 +45,18 @@ package mecha {
       val dir = new File(path)
       Process(s"git push $location", dir).! == 0
     }
+    def addAll(path: String): Boolean = {
+      val dir = new File(path)
+      Process(s"git add -A", dir).! == 0
+    }
+    def diff(path: String): String = {
+      val dir = new File(path)
+      Process(s"git diff --color HEAD", dir).!!
+    }
+    def commit(path: String, msg: String): Boolean = {
+      val dir = new File(path)
+      Process(s"git commit -m '${msg}'", dir).! == 0
+    }
   }
 
 }
