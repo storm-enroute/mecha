@@ -156,7 +156,6 @@ object MechaSuperPlugin extends Plugin {
   )
 
   val pullTask = pullKey := {
-    // check if repos are clean
     val log = streams.value.log
     val repos = trackedReposKey.value
     ifClean(repos, log) {
