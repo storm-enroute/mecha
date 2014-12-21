@@ -399,6 +399,7 @@ object MechaSuperPlugin extends Plugin {
     pullMirrorTask,
     pushMirrorTask,
     commitTask,
+    mergeTask,
     publishTask,
     trackTask,
     testTask
