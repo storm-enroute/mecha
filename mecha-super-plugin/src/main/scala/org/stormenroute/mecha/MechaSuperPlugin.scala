@@ -266,7 +266,7 @@ object MechaSuperPlugin extends Plugin {
           ifBranchInAll(repos, log, name) {
             for ((_, repo) <- repos) {
               if (!Git.checkout(repo.dir, name))
-                log.error(s"Cannot checkout branch '$name' in repo '$repo.dir'.")
+                log.error(s"Cannot checkout branch '$name' in '$repo.dir'.")
             }
           }
       }
