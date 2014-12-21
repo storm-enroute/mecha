@@ -261,7 +261,7 @@ object MechaSuperPlugin extends Plugin {
     val repos = trackedReposKey.value
     ifClean(repos, log) {
       SimpleReader.readLine("Existing branch name: ") match {
-        case None => log.error("Need to specify a branch name.")
+        case None => log.error("Please specify a branch name.")
         case Some(name) =>
           ifBranchInAll(repos, log, name) {
             for ((_, repo) <- repos) {
