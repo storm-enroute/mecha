@@ -43,7 +43,7 @@ package mecha {
     }
     def push(path: String, location: String): Boolean = {
       val dir = new File(path)
-      Process(s"git push $location", dir).! == 0
+      Process(s"git push -u $location", dir).! == 0
     }
     def addAll(path: String): Boolean = {
       val dir = new File(path)
