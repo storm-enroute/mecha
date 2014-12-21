@@ -301,7 +301,7 @@ object MechaSuperPlugin extends Plugin {
                 }
               }
             case _ =>
-              log.error("Aborted, empty branch name.")
+              log.error("Aborted due to empty branch name.")
           }
         case _ =>
           log.error("Aborted.")
