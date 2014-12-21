@@ -264,20 +264,26 @@ object MechaSuperPlugin extends Plugin {
         log.info(s"All repositories are at branch: ${branches.head}")
       }
       val ans = SimpleReader.readLine("Branch in all repos? [y/n] ")
-      if (ans != "y") log.error("Aborted.")
-      else {
-        val name = (if (names.length == 0) SimpleReader.readLine("New branch name (empty aborts): ") else Some(names.head)).map(_.trim)
-        name match {
-          case None =>
-            log.error("Aborted, empty branch name.")
-          case Some(name) =>
-            ifBranchInNone(repos, log, name) {
-              for ((_, repo) <- repos) {
-                if (!Git.newBranch(repo.dir, name))
-                  log.error(s"Could not checkout new branch '$name' in '${repo.dir}'.")
+      ans match {
+        case Some("y") =>
+          val name = {
+            if (names.length == 0)
+              SimpleReader.readLine("New branch name (empty aborts): ")
+            else Some(names.head)
+          }.map(_.trim)
+          name match {
+            case None =>
+              log.error("Aborted, empty branch name.")
+            case Some(name) =>
+              ifBranchInNone(repos, log, name) {
+                for ((_, repo) <- repos) {
+                  if (!Git.newBranch(repo.dir, name))
+                    log.error(s"Could not checkout new branch '$name' in '${repo.dir}'.")
+                }
               }
-            }
-        }
+          }
+        case Some(_) | None =>
+          log.error("Aborted.")
       }
     }
   }
