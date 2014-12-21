@@ -139,7 +139,6 @@ object MechaSuperPlugin extends Plugin {
   )
 
   val diffTask = diffKey := {
-    // check if repos are clean
     val log = streams.value.log
     val repos = trackedReposKey.value
     for ((name, repo) <- repos) {
