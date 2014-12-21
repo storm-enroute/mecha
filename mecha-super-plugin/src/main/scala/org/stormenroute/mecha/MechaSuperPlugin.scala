@@ -82,7 +82,7 @@ object MechaSuperPlugin extends Plugin {
     val dirtyRepos = trackedReposKey.value.filter(p => Git.isDirty(p._2.dir))
     if (dirtyRepos.nonEmpty) {
       for ((name, repo) <- dirtyRepos) {
-        log.error(s"Uncommitted changes: ${repo.dir}.")
+        log.error(s"Uncommitted changes: ${repo.dir}")
       }
     } else {
       // pull from remote branches
