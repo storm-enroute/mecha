@@ -59,7 +59,7 @@ package mecha {
     }
     def branchExists(path: String, name: String): Boolean = {
       val dir = new File(path)
-      Process(s"git show-ref --verify --quiet refs/heads/$path", dir).! == 0
+      Process(s"git show-ref --verify --quiet refs/heads/$name", dir).! == 0
     }
     def branchName(path: String): String = {
       val dir = new File(path)
