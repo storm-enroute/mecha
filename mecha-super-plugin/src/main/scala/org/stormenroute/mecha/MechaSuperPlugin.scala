@@ -317,7 +317,7 @@ object MechaSuperPlugin extends Plugin {
           val name = {
             if (names.length == 0)
               SimpleReader.readLine("Existing branch name (empty aborts): ")
-            else Some(name.head)
+            else Some(names.head)
           }
           name.map(_.trim) match {
             case Some(name) if name != "" =>
