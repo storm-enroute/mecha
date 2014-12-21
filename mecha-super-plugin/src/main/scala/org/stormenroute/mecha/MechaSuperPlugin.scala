@@ -237,7 +237,7 @@ object MechaSuperPlugin extends Plugin {
     val repos = trackedReposKey.value
     for ((name, repo) <- repos; if Git.isDirty(repo.dir)) {
       if (!Git.addAll(repo.dir)) {
-        log.error(s"Could not stage in '${repo.dir}'.")
+        log.error(s"Could not stage changes in '${repo.dir}'.")
       } else {
         log.info(s"--- diff for '$name' in '${repo.dir}' ---")
         log.info(Git.diff(repo.dir))
