@@ -52,7 +52,8 @@ object MechaSuperPlugin extends Plugin {
   }
 
   val lsKey = InputKey[Unit](
-    "mecha-ls", "Lists all the repositories specified in the configuration."
+    "mecha-ls",
+    "Lists all the repositories specified in the configuration."
   )
 
   val lsTask = lsKey := {
@@ -73,20 +74,28 @@ object MechaSuperPlugin extends Plugin {
   }
 
   val pullKey = TaskKey[Unit](
-    "mecha-pull", "For every project, pulls the corresponding branch from the origin repository."
+    "mecha-pull",
+    "For every project, pulls the corresponding branch from the origin repository."
   )
 
-  val pullTask = pullKey := {
-    // check if repos are clean
-    val log = streams.value.log
-    val dirtyRepos = trackedReposKey.value.filter(p => Git.isDirty(p._2.dir))
+  def ifClean(repos: Map[String, Repo], log: Logger)(action: =>Unit): Unit = {
+    val dirtyRepos = repos.filter(p => Git.isDirty(p._2.dir))
     if (dirtyRepos.nonEmpty) {
       for ((name, repo) <- dirtyRepos) {
         log.error(s"Uncommitted changes: ${repo.dir}")
       }
     } else {
+      action
+    }
+  }
+
+  val pullTask = pullKey := {
+    // check if repos are clean
+    val log = streams.value.log
+    val repos = trackedReposKey.value
+    ifClean(repos, log) {
       // pull from remote branches
-      for ((name, repo) <- trackedReposKey.value) {
+      for ((name, repo) <- repos) {
         log.info(s"Pull repo: ${repo.dir}")
         if (!Git.pull(repo.dir)) log.error(s"Pull failed: ${repo.dir}")
       }
@@ -94,31 +103,43 @@ object MechaSuperPlugin extends Plugin {
   }
 
   val pushKey = TaskKey[Unit](
-    "mecha-push", "For every project, pushes the corresponding branch to the origin repository."
+    "mecha-push",
+    "For every project, pushes the corresponding branch to the origin repository."
   )
 
   val pushTask = pushKey := {
+    val log = streams.value.log
+    val repos = trackedReposKey.value
+    ifClean(repos, log) {
+      // push to remote branches
+      for ((name, repo) <- repos) {
+        log.info(s"Push repo: ${repo.dir}")
+        if (!Git.push(repo.dir)) log.error(s"Push failed: ${repo.dir}")
+      }
+    }
+  }
+
+  val pullMirrorKey = TaskKey[Unit](
+    "mecha-pull-mirror",
+    "Pulls the current branch from the mirror repositories."
+  )
+
+  val pullMirrorTask = pullMirrorKey := {
     ???
   }
 
-  val collectKey = TaskKey[Unit](
-    "mecha-collect", "Pulls the current branch from the mirror repositories."
+  val pushMirrorKey = TaskKey[Unit](
+    "mecha-push-mirror",
+    "Pushes the master branches to the mirror repositories."
   )
 
-  val collectTask = collectKey := {
-    ???
-  }
-
-  val spreadKey = TaskKey[Unit](
-    "mecha-spread", "Pushes the master branches to the mirror repositories."
-  )
-
-  val spreadTask = spreadKey := {
+  val pushMirrorTask = pushMirrorKey := {
     ???
   }
 
   val publishKey = TaskKey[Unit](
-    "mecha-publish", "Publishes the master branches of all repositories."
+    "mecha-publish",
+    "Publishes the master branches of all repositories."
   )
 
   val publishTask = publishKey := {
@@ -126,7 +147,8 @@ object MechaSuperPlugin extends Plugin {
   }
 
   val trackKey = InputKey[Unit](
-    "mecha-track", "Tracks a repository."
+    "mecha-track",
+    "Tracks a repository."
   )
 
   val trackTask = trackKey := {
@@ -158,7 +180,8 @@ object MechaSuperPlugin extends Plugin {
   }
 
   val testKey = TaskKey[Unit](
-    "mecha-test", "Runs the main tests for all the repositories."
+    "mecha-test",
+    "Runs the main tests for all the repositories."
   )
 
   val testTask = testKey := {
@@ -168,9 +191,9 @@ object MechaSuperPlugin extends Plugin {
   override val projectSettings = Seq(
     trackedReposTask,
     lsTask,
-    collectTask,
+    pullMirrorTask,
     pullTask,
-    spreadTask,
+    pushMirrorTask,
     pushTask,
     publishTask,
     trackTask,
