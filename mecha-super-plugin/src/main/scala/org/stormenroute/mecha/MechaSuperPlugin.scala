@@ -106,7 +106,6 @@ object MechaSuperPlugin extends Plugin {
     val args = spaceDelimited("").parsed
     val log = streams.value.log
     log.info("Superproject repositories:")
-    // list all repositories
     for ((name, repo) <- reposKey.value) {
       log.info(s"$name")
       if (args.contains("-v")) {
