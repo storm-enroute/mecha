@@ -37,9 +37,9 @@ package mecha {
       val dir = new File(path)
       Process(s"git diff-files --quiet", dir).! != 0
     }
-    def pull(path: String): Boolean = {
+    def pull(path: String, location: String): Boolean = {
       val dir = new File(path)
-      Process(s"git pull", dir).! == 0
+      Process(s"git pull $location", dir).! == 0
     }
     def push(path: String, location: String): Boolean = {
       val dir = new File(path)
