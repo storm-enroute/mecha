@@ -178,7 +178,6 @@ object MechaSuperPlugin extends Plugin {
     val log = streams.value.log
     val repos = trackedReposKey.value
     ifClean(repos, log) {
-      // push to remote branches
       for ((name, repo) <- repos) {
         log.info(s"Push '${repo.dir}' to origin...")
         val branch = Git.branchName(repo.dir)
@@ -197,7 +196,6 @@ object MechaSuperPlugin extends Plugin {
     val log = streams.value.log
     val repos = trackedReposKey.value
     ifClean(repos, log) {
-      // push to remote branches
       log.info("Pulling from mirrors...")
       for ((name, repo) <- repos; mirror <- repo.mirrors) {
         log.info(s"Pull '${repo.dir}' from '$mirror'...")
@@ -216,7 +214,6 @@ object MechaSuperPlugin extends Plugin {
     val log = streams.value.log
     val repos = trackedReposKey.value
     ifClean(repos, log) {
-      // push to remote branches
       log.info("Pushing to mirrors...")
       for ((name, repo) <- repos; mirror <- repo.mirrors) {
         log.info(s"Push '${repo.dir}' to '$mirror'...")
