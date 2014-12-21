@@ -237,9 +237,9 @@ object MechaSuperPlugin extends Plugin {
         case None => log.error("Need to specify a branch name.")
         case Some(name) =>
           ifBranchInAll(repos, log, name) {
-            for ((name, repo) <- repos) {
+            for ((_, repo) <- repos) {
               if (!Git.checkout(repo.dir, name))
-                log.error("Cannot checkout branch '$name' in repo '$repo.dir'.")
+                log.error(s"Cannot checkout branch '$name' in repo '$repo.dir'.")
             }
           }
       }
