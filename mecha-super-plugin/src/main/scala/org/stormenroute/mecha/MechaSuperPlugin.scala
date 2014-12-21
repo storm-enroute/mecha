@@ -159,6 +159,15 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
+  val commitKey = TaskKey[Unit](
+    "mecha-commit",
+    "Stages changes in all the repositories, collects commit messages and commits."
+  )
+
+  val commitTask = commitKey := {
+    ???
+  }
+
   val publishKey = TaskKey[Unit](
     "mecha-publish",
     "Publishes the master branches of all repositories."
@@ -213,10 +222,11 @@ object MechaSuperPlugin extends Plugin {
   override val projectSettings = Seq(
     trackedReposTask,
     lsTask,
-    pullMirrorTask,
     pullTask,
-    pushMirrorTask,
     pushTask,
+    pullMirrorTask,
+    pushMirrorTask,
+    commitTask,
     publishTask,
     trackTask,
     testTask
