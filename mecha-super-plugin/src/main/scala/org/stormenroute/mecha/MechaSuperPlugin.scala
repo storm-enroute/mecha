@@ -132,19 +132,21 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
-  val pushKey = TaskKey[Unit](
+  val pushKey = InputKey[Unit](
     "mecha-push",
     "For every project, pushes the corresponding branch to the origin repository."
   )
 
   val pushTask = pushKey := {
+    val flags = spaceDelimited("<push flags>").parsed
     val log = streams.value.log
     val repos = trackedReposKey.value
     ifClean(repos, log) {
       // push to remote branches
       for ((name, repo) <- repos) {
         log.info(s"Push '${repo.dir}' to origin...")
-        if (!Git.push(repo.dir, "origin"))
+        val branch = Git.branchName(repo.dir)
+        if (!Git.push(repo.dir, "origin", branch, flags.mkString(" ")))
           log.error(s"Push failed: ${repo.dir}")
       }
     }
