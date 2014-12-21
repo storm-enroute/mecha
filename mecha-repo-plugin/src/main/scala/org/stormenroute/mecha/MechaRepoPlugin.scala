@@ -10,6 +10,11 @@ import org.apache.commons.io._
 
 
 
+trait MechaRepoBuild extends Build {
+  
+}
+
+
 /** Added to each repository inside the superrepository.
  */
 object MechaRepoPlugin extends Plugin {
