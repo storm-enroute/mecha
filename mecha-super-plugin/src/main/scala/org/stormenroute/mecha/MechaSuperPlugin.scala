@@ -53,11 +53,22 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
-  def ifBranchExists(repos: Map[String, Repo], log: Logger, name: String)(action: =>Unit): Unit = {
+  def ifBranchInAll(repos: Map[String, Repo], log: Logger, name: String)(action: =>Unit): Unit = {
     val nonExisting = repos.filterNot(p => Git.branchExists(p._2.dir, name))
     if (nonExisting.nonEmpty) {
-      for ((name, repo) <- nonExisting) {
+      for ((_, repo) <- nonExisting) {
         log.error(s"Branch '$name' does not exist in the '${repo.dir}' repo.")
+      }
+    } else {
+      action
+    }
+  }
+
+  def ifBranchInNone(repos: Map[String, Repo], log: Logger, name: String)(action: =>Unit): Unit = {
+    val existing = repos.filter(p => Git.branchExists(p._2.dir, name))
+    if (existing.nonEmpty) {
+      for ((_, repo) <- existing) {
+        log.error(s"Branch '$name' exists in the '${repo.dir}' repo.")
       }
     } else {
       action
@@ -213,19 +224,19 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
-  val branchKey = TaskKey[Unit](
-    "mecha-branch",
+  val checkoutKey = TaskKey[Unit](
+    "mecha-checkout",
     "Checks out the specified, existing branch on all the repositories."
   )
 
-  val branchTask = branchKey := {
+  val checkoutTask = checkoutKey := {
     val log = streams.value.log
     val repos = trackedReposKey.value
     ifClean(repos, log) {
       SimpleReader.readLine("Existing branch name: ") match {
         case None => log.error("Need to specify a branch name.")
         case Some(name) =>
-          ifBranchExists(repos, log, name) {
+          ifBranchInAll(repos, log, name) {
             for ((name, repo) <- repos) {
               if (!Git.checkout(repo.dir, name))
                 log.error("Could not checkout branch '$name' in repo '$repo.dir'.")
@@ -233,6 +244,51 @@ object MechaSuperPlugin extends Plugin {
           }
       }
     }
+  }
+
+  val newBranchKey = InputKey[Unit](
+    "mecha-new-branch",
+    "Creates and checks out new non-existing branch on all repositories."
+  )
+
+  val newBranchTask = newBranchKey := {
+    val log = streams.value.log
+    val repos = trackedReposKey.value
+    val names = spaceDelimited("<branch name>").parsed
+    if (names.length > 1) log.error("Please specify a single new branch name.")
+    ifClean(repos, log) {
+      val branches = repos.map(p => Git.branchName(p._2.dir)).toSet
+      if (branches.size != 1) {
+        log.warn(s"Different repositories have different branches: ${branches.mkString(", ")}")
+      } else {
+        log.info(s"All repositories are at branch: ${branches.head}")
+      }
+      val ans = SimpleReader.readLine("Branch in all repos? [y/n] ")
+      if (ans != "y") log.error("Aborted.")
+      else {
+        val name = (if (names.length == 0) SimpleReader.readLine("New branch name (empty aborts): ") else Some(names.head)).map(_.trim)
+        name match {
+          case None =>
+            log.error("Aborted, empty branch name.")
+          case Some(name) =>
+            ifBranchInNone(repos, log, name) {
+              for ((_, repo) <- repos) {
+                if (!Git.newBranch(repo.dir, name))
+                  log.error(s"Could not checkout new branch '$name' in '${repo.dir}'.")
+              }
+            }
+        }
+      }
+    }
+  }
+
+  val branchKey = TaskKey[Unit](
+    "mecha-branch",
+    "Displays the current working branch for each repository."
+  )
+
+  val branchTask = branchKey := {
+    // TODO
   }
 
   val publishKey = TaskKey[Unit](
@@ -290,7 +346,9 @@ object MechaSuperPlugin extends Plugin {
     trackedReposTask,
     lsTask,
     statusTask,
+    newBranchTask,
     branchTask,
+    checkoutTask,
     pullTask,
     pushTask,
     pullMirrorTask,

@@ -69,6 +69,10 @@ package mecha {
       val dir = new File(path)
       Process(s"git checkout $name", dir).! == 0
     }
+    def newBranch(path: String, name: String): Boolean = {
+      val dir = new File(path)
+      Process(s"git checkout -b $name", dir).! == 0
+    }
     def status(path: String): String = {
       val dir = new File(path)
       Process(s"git -c color.status=always status", dir).!!
