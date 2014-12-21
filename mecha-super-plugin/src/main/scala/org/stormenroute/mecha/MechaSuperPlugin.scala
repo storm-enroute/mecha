@@ -75,6 +75,15 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
+  def checkSingleBranch(repos: Map[String, Repo], log: Logger) {
+    val branches = repos.map(p => Git.branchName(p._2.dir)).toSet
+    if (branches.size != 1) {
+      log.warn(s"Repos have different branches: ${branches.mkString(", ")}")
+    } else {
+      log.info(s"All repositories are at branch: ${branches.head}")
+    }
+  }
+
   val reposKey = SettingKey[Map[String, Repo]](
     "mecha-repos", "Information about all the repos."
   )
@@ -256,15 +265,9 @@ object MechaSuperPlugin extends Plugin {
     val repos = trackedReposKey.value
     val names = spaceDelimited("<branch name>").parsed
     if (names.length > 1) log.error("Please specify a single new branch name.")
-    ifClean(repos, log) {
-      val branches = repos.map(p => Git.branchName(p._2.dir)).toSet
-      if (branches.size != 1) {
-        log.warn(s"Repos have different branches: ${branches.mkString(", ")}")
-      } else {
-        log.info(s"All repositories are at branch: ${branches.head}")
-      }
-      val ans = SimpleReader.readLine("Branch in all repos? [y/n] ")
-      ans match {
+    else ifClean(repos, log) {
+      checkSingleBranch(repos, log)
+      SimpleReader.readLine("Branch in all repos? [y/n] ") match {
         case Some("y") =>
           val name = {
             if (names.length == 0)
@@ -282,7 +285,7 @@ object MechaSuperPlugin extends Plugin {
             case _ =>
               log.error("Aborted, empty branch name.")
           }
-        case Some(_) | None =>
+        case _ =>
           log.error("Aborted.")
       }
     }
@@ -295,6 +298,42 @@ object MechaSuperPlugin extends Plugin {
 
   val branchTask = branchKey := {
     // TODO
+  }
+
+  val mergeKey = InputKey[Unit](
+    "mecha-merge",
+    "Merges the target branch into the current branch."
+  )
+
+  val mergeTask = mergeKey := {
+    val log = streams.value.log
+    val repos = trackedReposKey.value
+    val names = spaceDelimited("<branch name>").parsed
+    if (names.length > 1) log.error("Please specify a single existing branch.")
+    else ifClean(repos, log) {
+      checkSingleBranch(repos, log)
+      SimpleReader.readLine("Merge in all repos? [y/n]") match {
+        case Some("y") =>
+          val name = {
+            if (names.length == 0)
+              SimpleReader.readLine("Existing branch name (empty aborts): ")
+            else Some(name.head)
+          }
+          name.map(_.trim) match {
+            case Some(name) if name != "" =>
+              ifBranchInAll(repos, log, name) {
+                for ((_, repo) <- repos) {
+                  if (!Git.merge(repo.dir, name))
+                    log.error(s"Cannot merge from '$name' in '${repo.dir}'.")
+                }
+              }
+            case _ =>
+              log.error("Aborted, empty branch name.")
+          }
+        case _ =>
+          log.error("Aborted")
+      }
+    }
   }
 
   val publishKey = TaskKey[Unit](

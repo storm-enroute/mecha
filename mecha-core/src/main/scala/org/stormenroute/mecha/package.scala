@@ -77,6 +77,10 @@ package mecha {
       val dir = new File(path)
       Process(s"git -c color.status=always status", dir).!!
     }
+    def merge(path: String, branch: String): Boolean = {
+      val dir = new File(path)
+      Process(s"git merge $branch", dir).! == 0
+    }
   }
 
 }
