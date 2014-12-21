@@ -239,7 +239,7 @@ object MechaSuperPlugin extends Plugin {
           ifBranchInAll(repos, log, name) {
             for ((name, repo) <- repos) {
               if (!Git.checkout(repo.dir, name))
-                log.error("Could not checkout branch '$name' in repo '$repo.dir'.")
+                log.error("Cannot checkout branch '$name' in repo '$repo.dir'.")
             }
           }
       }
@@ -259,7 +259,7 @@ object MechaSuperPlugin extends Plugin {
     ifClean(repos, log) {
       val branches = repos.map(p => Git.branchName(p._2.dir)).toSet
       if (branches.size != 1) {
-        log.warn(s"Different repositories have different branches: ${branches.mkString(", ")}")
+        log.warn(s"Repos have different branches: ${branches.mkString(", ")}")
       } else {
         log.info(s"All repositories are at branch: ${branches.head}")
       }
@@ -270,17 +270,17 @@ object MechaSuperPlugin extends Plugin {
             if (names.length == 0)
               SimpleReader.readLine("New branch name (empty aborts): ")
             else Some(names.head)
-          }.map(_.trim)
-          name match {
-            case None =>
-              log.error("Aborted, empty branch name.")
-            case Some(name) =>
+          }
+          name.map(_.trim) match {
+            case Some(name) if name != "" =>
               ifBranchInNone(repos, log, name) {
                 for ((_, repo) <- repos) {
                   if (!Git.newBranch(repo.dir, name))
-                    log.error(s"Could not checkout new branch '$name' in '${repo.dir}'.")
+                    log.error(s"Cannot create branch '$name' in '${repo.dir}'.")
                 }
               }
+            case _ =>
+              log.error("Aborted, empty branch name.")
           }
         case Some(_) | None =>
           log.error("Aborted.")
