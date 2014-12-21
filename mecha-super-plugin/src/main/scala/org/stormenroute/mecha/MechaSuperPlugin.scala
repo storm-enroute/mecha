@@ -246,7 +246,7 @@ object MechaSuperPlugin extends Plugin {
             if (!Git.commit(repo.dir, msg)) log.error("Could not commit.")
           case None =>
         }
-        log.info("--- end of diff for '$name' in '${repo.dir}' ---")
+        log.info(s"--- end of diff for '$name' in '${repo.dir}' ---")
       }
     }
   }
