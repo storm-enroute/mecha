@@ -294,7 +294,12 @@ object MechaSuperPlugin extends Plugin {
   )
 
   val branchTask = branchKey := {
-    // TODO
+    val log = streams.value.log
+    val repos = trackedReposKey.value
+    for ((name, repo) <- repos) {
+      val branch = Git.branchName(repo.dir)
+      log.info(s"Repo '$name' at directory '${repo.dir}': $branch")
+    }
   }
 
   val publishKey = TaskKey[Unit](
