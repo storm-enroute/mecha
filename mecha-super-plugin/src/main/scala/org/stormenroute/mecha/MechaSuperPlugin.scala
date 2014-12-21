@@ -136,7 +136,7 @@ object MechaSuperPlugin extends Plugin {
 
   val diffKey = TaskKey[Unit](
     "mecha-diff",
-    "Shows the diff of the current working tree in all repositories."
+    "Shows the diff of the current working tree and HEAD in all repositories."
   )
 
   val diffTask = diffKey := {
