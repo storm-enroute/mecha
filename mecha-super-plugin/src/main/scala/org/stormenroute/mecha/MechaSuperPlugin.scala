@@ -16,7 +16,8 @@ trait MechaSuperBuild extends Build {
   val supername: String
   val superdirectory: File
   val supersettings: Seq[Setting[_]]
-  val repositories: Map[String, Repo]
+  def repositoriesFile: File
+  val repositories: Map[String, Repo] = reposFromJson(repositoriesFile)
   override def projects: Seq[Project] = {
     val otherprojects = super.projects
     val subprojects = for {
@@ -397,7 +398,11 @@ object MechaSuperPlugin extends Plugin {
   )
 
   val testTask = testKey := {
-    ???
+    val log = streams.value.log
+    val repos = trackedReposKey.value
+    for ((name, repo) <- repos) {
+
+    }
   }
 
   val publishKey = TaskKey[Unit](
