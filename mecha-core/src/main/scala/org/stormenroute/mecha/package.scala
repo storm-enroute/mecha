@@ -57,6 +57,18 @@ package mecha {
       val dir = new File(path)
       Process(s"git commit -m '${msg}'", dir).! == 0
     }
+    def branchExists(path: String, name: String): Boolean = {
+      val dir = new File(path)
+      Process(s"git show-ref --verify --quiet refs/heads/$path", dir).! == 0
+    }
+    def checkout(path: String, name: String): Boolean = {
+      val dir = new File(path)
+      Process(s"git checkout $name", dir).! == 0
+    }
+    def status(path: String): String = {
+      val dir = new File(path)
+      Process(s"git -c color.status=always status", dir).!!
+    }
   }
 
 }

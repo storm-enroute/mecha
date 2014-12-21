@@ -16,11 +16,14 @@ trait MechaSuperBuild extends Build {
   val supername: String
   val superdirectory: File
   val supersettings: Seq[Setting[_]]
-  val subrepositories: Map[String, Repo]
+  val repositories: Map[String, Repo]
   override def projects: Seq[Project] = {
     val otherprojects = super.projects
-    val subprojects = for ((name, _) <- subrepositories) yield {
-      RootProject(file(name))
+    val subprojects = for {
+      (name, repo) <- repositories
+      if superdirectory != file(repo.dir)
+    } yield {
+      RootProject(file(repo.dir))
     }
     val superproject = subprojects.foldLeft(Project(
       supername,
@@ -30,7 +33,7 @@ trait MechaSuperBuild extends Build {
     otherprojects ++ Seq(superproject)
   }
   override def settings = super.settings ++ Seq(
-    MechaSuperPlugin.reposKey := subrepositories
+    MechaSuperPlugin.reposKey := repositories
   )
 }
 
@@ -38,6 +41,28 @@ trait MechaSuperBuild extends Build {
 /** Added to the root build of the superrepository.
  */
 object MechaSuperPlugin extends Plugin {
+
+  def ifClean(repos: Map[String, Repo], log: Logger)(action: =>Unit): Unit = {
+    val dirtyRepos = repos.filter(p => Git.isDirty(p._2.dir))
+    if (dirtyRepos.nonEmpty) {
+      for ((name, repo) <- dirtyRepos) {
+        log.error(s"Uncommitted changes: ${repo.dir}")
+      }
+    } else {
+      action
+    }
+  }
+
+  def ifBranchExists(repos: Map[String, Repo], log: Logger, name: String)(action: =>Unit): Unit = {
+    val nonExisting = repos.filterNot(p => Git.branchExists(p._2.dir, name))
+    if (nonExisting.nonEmpty) {
+      for ((name, repo) <- nonExisting) {
+        log.error(s"Branch '$name' does not exist in the '${repo.dir}' repo.")
+      }
+    } else {
+      action
+    }
+  }
 
   val reposKey = SettingKey[Map[String, Repo]](
     "mecha-repos", "Information about all the repos."
@@ -73,21 +98,25 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
+  val statusKey = TaskKey[Unit](
+    "mecha-status",
+    "Shows the status of the working tree in all repositories."
+  )
+
+  val statusTask = statusKey := {
+    val log = streams.value.log
+    val repos = trackedReposKey.value
+    for ((name, repo) <- repos) {
+      val status = Git.status(repo.dir)
+      log.info(s"Status for '${name}', directory '${repo.dir}':")
+      log.info(status)
+    }
+  }
+
   val pullKey = TaskKey[Unit](
     "mecha-pull",
     "For every project, pulls the corresponding branch from the origin repository."
   )
-
-  def ifClean(repos: Map[String, Repo], log: Logger)(action: =>Unit): Unit = {
-    val dirtyRepos = repos.filter(p => Git.isDirty(p._2.dir))
-    if (dirtyRepos.nonEmpty) {
-      for ((name, repo) <- dirtyRepos) {
-        log.error(s"Uncommitted changes: ${repo.dir}")
-      }
-    } else {
-      action
-    }
-  }
 
   val pullTask = pullKey := {
     // check if repos are clean
@@ -182,6 +211,28 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
+  val branchKey = TaskKey[Unit](
+    "mecha-branch",
+    "Checks out the specified, existing branch on all the repositories."
+  )
+
+  val branchTask = branchKey := {
+    val log = streams.value.log
+    val repos = trackedReposKey.value
+    ifClean(repos, log) {
+      SimpleReader.readLine("Existing branch name: ") match {
+        case None => log.error("Need to specify a branch name.")
+        case Some(name) =>
+          ifBranchExists(repos, log, name) {
+            for ((name, repo) <- repos) {
+              if (!Git.checkout(repo.dir, name))
+                log.error("Could not checkout branch '$name' in repo '$repo.dir'.")
+            }
+          }
+      }
+    }
+  }
+
   val publishKey = TaskKey[Unit](
     "mecha-publish",
     "Publishes the master branches of all repositories."
@@ -236,6 +287,8 @@ object MechaSuperPlugin extends Plugin {
   override val projectSettings = Seq(
     trackedReposTask,
     lsTask,
+    statusTask,
+    branchTask,
     pullTask,
     pushTask,
     pullMirrorTask,
