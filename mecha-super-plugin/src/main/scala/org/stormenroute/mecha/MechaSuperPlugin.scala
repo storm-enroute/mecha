@@ -87,6 +87,7 @@ object MechaSuperPlugin extends Plugin {
     } else {
       // pull from remote branches
       for ((name, repo) <- trackedReposKey.value) {
+        log.info(s"Pull repo: ${repo.dir}")
         if (!Git.pull(repo.dir)) log.error(s"Pull failed: ${repo.dir}")
       }
     }

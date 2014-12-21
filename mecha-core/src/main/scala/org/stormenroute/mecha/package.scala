@@ -39,7 +39,7 @@ package mecha {
     }
     def pull(path: String): Boolean = {
       val dir = new File(path)
-      Process(s"git pull", dir).! != 0
+      Process(s"git pull", dir).! == 0
     }
   }
 
