@@ -44,6 +44,8 @@ trait MechaSuperBuild extends Build {
    */
   def repositoriesFile: File = file("repos.json")
   
+  /** Holds the configuration of repositories in this superrepo.
+   */
   val repositories: Map[String, Repo] = reposFromJson(repositoriesFile)
   
   override def projects: Seq[Project] = {

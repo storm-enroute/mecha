@@ -16,6 +16,9 @@ trait MechaRepoBuild extends Build {
    */
   def repositoriesFile: File = file("../repos.json")
   
+  /** Holds repository configuration if repo is checked out within a
+   *  superrepo.
+   */
   val repositories: Option[Map[String, Repo]] = {
     if (repositoriesFile.exists) Some(reposFromJson(repositoriesFile))
     else None

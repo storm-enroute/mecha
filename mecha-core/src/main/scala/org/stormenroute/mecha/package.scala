@@ -83,7 +83,7 @@ package mecha {
 
 package object mecha {
 
-  /** Parse repos from Json. */
+  /** Parse repository configuration from Json. */
   def reposFromJson(file: File): Map[String, Repo] = {
     import scala.annotation.unchecked
     val repomap = mutable.Map[String, Repo]()
