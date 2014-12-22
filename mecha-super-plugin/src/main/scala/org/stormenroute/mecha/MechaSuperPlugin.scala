@@ -219,7 +219,7 @@ object MechaSuperPlugin extends Plugin {
           logger
         }
       }
-      for (push <- pushes; output <- push) println(output)
+      for (push <- pushes; output <- push) log.info(output())
       Await.ready(Future.sequence(pushes), Duration.Inf)
     }
   }
