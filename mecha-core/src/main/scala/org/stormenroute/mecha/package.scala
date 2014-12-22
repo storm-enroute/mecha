@@ -12,15 +12,10 @@ import DefaultJsonProtocol._
 
 
 package mecha {
-  
-  /** Dependency descriptor, describes how to resolve dependencies. */
-  case class Dep(local: String, artifact: Option[String] = None) {
-    override def toString = s"$local($artifact)"
-  }
 
   /** Original repository within this multirepository, in the `dir` directory. */
   case class Repo(dir: String, origin: String, mirrors: Seq[String],
-      dependencies: Seq[Dep])
+      dependencies: Seq[String])
 
   /** Utility methods for working with Git. */
   object Git {
@@ -105,18 +100,11 @@ package object mecha {
           def strings(v: JsValue) = (v: @unchecked) match {
             case JsArray(ss) => for (JsString(s) <- ss) yield s
           }
-          def deps(v: JsValue) = (v: @unchecked) match {
-            case JsArray(deps) =>
-              for (JsArray(ss) <- deps) yield ss match {
-                case Seq(local, artifact) => Dep(str(local), Some(str(artifact)))
-                case Seq(local) => Dep(str(local))
-              }
-          }
           repomap(name) = Repo(
             dir = str(conf("dir")),
             origin = str(conf("origin")),
             mirrors = strings(conf("mirrors")),
-            dependencies = deps(conf("dependencies"))
+            dependencies = strings(conf("dependencies"))
           )
         }
     }

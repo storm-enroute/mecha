@@ -11,7 +11,8 @@ import org.apache.commons.io._
 
 
 trait MechaRepoBuild extends Build {
-  
+  def repositoriesFile: File
+  val repositories: Map[String, Repo] = reposFromJson(repositoriesFile)
 }
 
 
