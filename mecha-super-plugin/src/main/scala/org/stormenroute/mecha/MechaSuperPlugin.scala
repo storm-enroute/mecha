@@ -216,10 +216,13 @@ object MechaSuperPlugin extends Plugin {
           if (!Git.push(repo.dir, "origin", branch, flags.mkString(" "),
               logger))
             log.error(s"Push failed: ${repo.dir}")
-          logger
+          (name, logger)
         }
       }
-      for (push <- pushes; output <- push) log.info(output())
+      for (push <- pushes; (name, output) <- push) {
+        log.info(s"Push completed:")
+        log.info(output())
+      }
       Await.ready(Future.sequence(pushes), Duration.Inf)
     }
   }
@@ -276,12 +279,12 @@ object MechaSuperPlugin extends Plugin {
       } else {
         log.info(s"--- diff for '$name' in '${repo.dir}' ---")
         log.info(Git.diff(repo.dir))
+        log.info(s"--- end of diff for '$name' in '${repo.dir}' ---")
         SimpleReader.readLine("Commit message (empty aborts): ") match {
           case Some(msg) =>
             if (!Git.commit(repo.dir, msg)) log.error("Could not commit.")
           case None =>
         }
-        log.info(s"--- end of diff for '$name' in '${repo.dir}' ---")
       }
     }
   }
