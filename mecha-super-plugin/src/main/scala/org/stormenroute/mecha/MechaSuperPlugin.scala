@@ -220,7 +220,7 @@ object MechaSuperPlugin extends Plugin {
         }
       }
       for (push <- pushes; (name, output) <- push) {
-        log.info(s"Push completed:")
+        log.info(s"...::: $name :::...")
         log.info(output())
       }
       Await.ready(Future.sequence(pushes), Duration.Inf)

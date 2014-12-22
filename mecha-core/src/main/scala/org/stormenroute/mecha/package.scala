@@ -96,7 +96,7 @@ package object mecha {
       def out(s: =>String) = buf += s
       def buffer[T](f: =>T) = f
       def apply() = {
-        val s = buf.mkString(", ")
+        val s = buf.mkString("\n")
         buf.clear()
         s
       }
