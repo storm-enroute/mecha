@@ -14,11 +14,11 @@ import DefaultJsonProtocol._
 package mecha {
 
   /** Organization, project and version of the artifact. */
-  case class Artifact(org: String, project: String, version: String)
+  case class Artifact(org: String, project: String)
 
   /** Original repository within this multirepository, in the `dir` directory. */
   case class Repo(dir: String, origin: String, mirrors: Seq[String],
-      dependencies: Seq[String], artifacts: Seq[Artifact])
+      dependencies: Seq[String], artifacts: Seq[Artifact], publishedVersion: String)
 
   /** Utility methods for working with Git. */
   object Git {
@@ -106,7 +106,7 @@ package object mecha {
           def artifacts(v: JsValue) = (v: @unchecked) match {
             case JsArray(arts) =>
               for (JsArray(ss) <- arts) yield ss match {
-                case Seq(org, proj, v) => Artifact(str(org), str(proj), str(v))
+                case Seq(org, proj) => Artifact(str(org), str(proj))
               }
           }
           repomap(name) = Repo(
@@ -114,7 +114,8 @@ package object mecha {
             origin = str(conf("origin")),
             mirrors = strings(conf("mirrors")),
             dependencies = strings(conf("dependencies")),
-            artifacts = artifacts(conf("artifacts"))
+            artifacts = artifacts(conf("artifacts")),
+            publishedVersion = str(conf("published_version"))
           )
         }
     }
