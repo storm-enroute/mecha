@@ -90,9 +90,8 @@ package object mecha {
     val content = FileUtils.readFileToString(file, null: String)
     val tree = content.parseJson
     (tree: @unchecked) match {
-      case JsArray(repos) =>
-        for (JsObject(fields) <- repos) {
-          val (name, JsObject(conf)) = fields.head
+      case JsObject(projects) =>
+        for ((name, JsObject(conf)) <- projects) {
           def str(v: JsValue) = (v: @unchecked) match {
             case JsString(s) => s
           }

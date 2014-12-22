@@ -23,22 +23,18 @@ trait MechaSuperBuild extends Build {
    *
    *  Format:
    *  
-   *      [
-   *        {
-   *          "super-project": {
-   *            "dir": ".",
-   *            "origin": "<repo-url-at-github>",
-   *            "mirrors": ["<repo-url-at-bitbucket>"],
-   *          }
+   *      {
+   *        "super-project": {
+   *          "dir": ".",
+   *          "origin": "<repo-url-at-github>",
+   *          "mirrors": ["<repo-url-at-bitbucket>"],
    *        },
-   *        {
-   *          "sub-project": {
-   *            "dir": "mecha",
-   *            "origin": "git@github.com:storm-enroute/mecha.git",
-   *            "mirrors": [],
-   *          }
+   *        "sub-project": {
+   *          "dir": "mecha",
+   *          "origin": "git@github.com:storm-enroute/mecha.git",
+   *          "mirrors": [],
    *        }
-   *      ]
+   *      }
    *
    *  Override this method to specify a different path to this file.
    */
