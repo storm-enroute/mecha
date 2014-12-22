@@ -2,11 +2,14 @@ package org.stormenroute.mecha
 
 
 
-import sbt._
+import sbt.{Future => _, _}
 import Keys._
 import complete.DefaultParsers._
 import java.io.File
 import scala.collection._
+import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 import org.apache.commons.io._
 
 
@@ -48,7 +51,9 @@ trait MechaSuperBuild extends Build {
     val otherprojects = super.projects
     val subprojects = for {
       (name, repo) <- repositories
-      if superdirectory != file(repo.dir)
+      dir = file(repo.dir)
+      if dir.exists
+      if superdirectory != dir
     } yield {
       RootProject(file(repo.dir))
     }
@@ -154,8 +159,9 @@ object MechaSuperPlugin extends Plugin {
     val repos = trackedReposKey.value
     for ((name, repo) <- repos) {
       val status = Git.status(repo.dir)
-      log.info(s"Status for repo '${name}', directory '${repo.dir}':")
+      log.info(s"...::: repo '${name}', directory '${repo.dir}' :::...")
       log.info(status)
+      log.info("")
     }
   }
 
@@ -202,12 +208,19 @@ object MechaSuperPlugin extends Plugin {
     val log = streams.value.log
     val repos = trackedReposKey.value
     ifClean(repos, log) {
-      for ((name, repo) <- repos) {
+      val pushes = for ((name, repo) <- repos) yield {
         log.info(s"Push '${repo.dir}' to origin...")
         val branch = Git.branchName(repo.dir)
-        if (!Git.push(repo.dir, "origin", branch, flags.mkString(" ")))
-          log.error(s"Push failed: ${repo.dir}")
+        val logger = BufferedLogger()
+        Future {
+          if (!Git.push(repo.dir, "origin", branch, flags.mkString(" "),
+              logger))
+            log.error(s"Push failed: ${repo.dir}")
+          logger
+        }
       }
+      for (push <- pushes; output <- push) println(output)
+      Await.ready(Future.sequence(pushes), Duration.Inf)
     }
   }
 
@@ -229,19 +242,21 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
-  val pushMirrorKey = TaskKey[Unit](
+  val pushMirrorKey = InputKey[Unit](
     "mecha-push-mirror",
     "Pushes the master branches to the mirror repositories."
   )
 
   val pushMirrorTask = pushMirrorKey := {
+    val flags = spaceDelimited("<push flags>").parsed
     val log = streams.value.log
     val repos = trackedReposKey.value
     ifClean(repos, log) {
       log.info("Pushing to mirrors...")
       for ((name, repo) <- repos; mirror <- repo.mirrors) {
         log.info(s"Push '${repo.dir}' to '$mirror'...")
-        if (!Git.push(repo.dir, mirror))
+        val branch = Git.branchName(repo.dir)
+        if (!Git.push(repo.dir, mirror, branch, flags.mkString(" ")))
           log.error(s"Push failed: ${repo.dir}")
       }
     }
@@ -390,18 +405,20 @@ object MechaSuperPlugin extends Plugin {
     val dir = baseDirectory.value
     for (arg <- args) reposKey.value.get(arg) match {
       case None =>
-        log.error(s"Project $arg does not exist.")
+        log.error(s"Project '$arg' does not exist.")
       case Some(repo) =>
-        val repodir = new File(s"$dir/$arg")
-        if (repodir.exists) log.warn(s"Project $arg already tracked.")
+        val repodir = new File(s"$dir/${repo.dir}")
+        if (repodir.exists) log.warn(s"Project '$arg' already tracked.")
         else try {
           val url = repo.origin
           repodir.mkdir()
-          if (Git.clone(url, arg)) sys.error(s"Clone failed.")
+          log.info(s"Cloning '$arg' into '$repodir'.")
+          if (!Git.clone(url, repo.dir)) sys.error(s"Clone failed.")
           else {
             val gitignoreSample = new File(repodir, ".gitignore-SAMPLE")
             val gitignore = new File(repodir, ".gitignore")
-            FileUtils.copyFile(gitignoreSample, gitignore)
+            if (gitignoreSample.exists)
+              FileUtils.copyFile(gitignoreSample, gitignore)
             log.info(s"Please reload the sbt shell.")
           }
         } catch {

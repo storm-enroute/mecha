@@ -13,13 +13,16 @@ import DefaultJsonProtocol._
 
 package mecha {
 
-  /** Original repository within this multirepository, in the `dir` directory. */
+  /** Original repository within this multirepository,
+    * in the `dir` directory.
+    */
   case class Repo(dir: String, origin: String, mirrors: Seq[String])
 
   /** Utility methods for working with Git. */
   object Git {
-    def clone(url: String, dir: String): Boolean = {
-      Process(s"git clone $url $dir").! == 0
+    def clone(url: String, path: String): Boolean = {
+      val dir = new File(path)
+      Process(s"git clone $url .", dir).! == 0
     }
     def isDirty(path: String): Boolean = {
       isUncommitted(path) || isUnstaged(path)
@@ -36,9 +39,10 @@ package mecha {
       val dir = new File(path)
       Process(s"git pull $location", dir).! == 0
     }
-    def push(path: String, location: String, branch: String = "", flags: String = ""): Boolean = {
+    def push(path: String, location: String, branch: String = "",
+        flags: String = "", logger: ProcessLogger = PrintlnLogger): Boolean = {
       val dir = new File(path)
-      Process(s"git push $flags $location $branch", dir).! == 0
+      Process(s"git push $flags $location $branch", dir).!<(logger) == 0
     }
     def addAll(path: String): Boolean = {
       val dir = new File(path)
@@ -82,6 +86,22 @@ package mecha {
 
 
 package object mecha {
+
+  val PrintlnLogger = ProcessLogger(println, println)
+
+  def BufferedLogger(): ProcessLogger with (() => String) = {
+    val buf = mutable.ArrayBuffer[String]()
+    new ProcessLogger with (() => String) {
+      def err(s: =>String) = buf += s
+      def out(s: =>String) = buf += s
+      def buffer[T](f: =>T) = f
+      def apply() = {
+        val s = buf.mkString(", ")
+        buf.clear()
+        s
+      }
+    }
+  }
 
   /** Parse repository configuration from Json. */
   def reposFromJson(file: File): Map[String, Repo] = {
