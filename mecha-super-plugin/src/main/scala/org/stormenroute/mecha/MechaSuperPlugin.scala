@@ -14,10 +14,38 @@ import org.apache.commons.io._
 /** Mixed in with the superrepository root project. */
 trait MechaSuperBuild extends Build {
   val supername: String
+  
   val superdirectory: File
+  
   val supersettings: Seq[Setting[_]]
-  def repositoriesFile: File
+  
+  /** File that describes all the repositories in this superrepository.
+   *
+   *  Format:
+   *  
+   *      [
+   *        {
+   *          "super-project": {
+   *            "dir": ".",
+   *            "origin": "<repo-url-at-github>",
+   *            "mirrors": ["<repo-url-at-bitbucket>"],
+   *          }
+   *        },
+   *        {
+   *          "sub-project": {
+   *            "dir": "mecha",
+   *            "origin": "git@github.com:storm-enroute/mecha.git",
+   *            "mirrors": [],
+   *          }
+   *        }
+   *      ]
+   *
+   *  Override this method to specify a different path to this file.
+   */
+  def repositoriesFile: File = file("repos.json")
+  
   val repositories: Map[String, Repo] = reposFromJson(repositoriesFile)
+  
   override def projects: Seq[Project] = {
     val otherprojects = super.projects
     val subprojects = for {
@@ -33,6 +61,7 @@ trait MechaSuperBuild extends Build {
     ))(_ dependsOn _)
     otherprojects ++ Seq(superproject)
   }
+  
   override def settings = super.settings ++ Seq(
     MechaSuperPlugin.reposKey := repositories
   )
@@ -113,7 +142,6 @@ object MechaSuperPlugin extends Plugin {
         for (mirror <- repo.mirrors) { 
           log.info(s"  mirror: $mirror")
         }
-        log.info(s"  dependencies: ${repo.dependencies.mkString(", ")}")
       }
     }
   }
