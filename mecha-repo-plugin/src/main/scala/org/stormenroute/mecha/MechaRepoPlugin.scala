@@ -3,8 +3,8 @@ package org.stormenroute.mecha
 
 
 import sbt._
-import Keys._
-import complete.DefaultParsers._
+import sbt.Keys._
+import sbt.complete.DefaultParsers._
 import java.io.File
 import scala.collection._
 import org.apache.commons.io._
