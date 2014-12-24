@@ -2,12 +2,12 @@ package org.stormenroute
 
 
 
-import java.io.File
+import java.io._
 import scala.collection._
 import scala.sys.process._
 import org.apache.commons.io._
 import spray.json._
-import DefaultJsonProtocol._
+import spray.json.DefaultJsonProtocol._
 
 
 
@@ -103,29 +103,41 @@ package object mecha {
     }
   }
 
-  /** Parse repository configuration from Json. */
-  def reposFromJson(file: File): Map[String, Repo] = {
-    import scala.annotation.unchecked
-    val repomap = mutable.Map[String, Repo]()
-    val content = FileUtils.readFileToString(file, null: String)
-    val tree = content.parseJson
-    (tree: @unchecked) match {
-      case JsObject(projects) =>
-        for ((name, JsObject(conf)) <- projects) {
-          def str(v: JsValue) = (v: @unchecked) match {
-            case JsString(s) => s
+  object ConfigParsers {
+
+    /** Parse repository configuration from Json. */
+    def reposFromJson(file: File): Map[String, Repo] = {
+      import scala.annotation.unchecked
+      val repomap = mutable.Map[String, Repo]()
+      val content = FileUtils.readFileToString(file, null: String)
+      val tree = content.parseJson
+      (tree: @unchecked) match {
+        case JsObject(projects) =>
+          for ((name, JsObject(conf)) <- projects) {
+            def str(v: JsValue) = (v: @unchecked) match {
+              case JsString(s) => s
+            }
+            def strings(v: JsValue) = (v: @unchecked) match {
+              case JsArray(ss) => for (JsString(s) <- ss) yield s
+            }
+            repomap(name) = Repo(
+              dir = str(conf("dir")),
+              origin = str(conf("origin")),
+              mirrors = strings(conf("mirrors"))
+            )
           }
-          def strings(v: JsValue) = (v: @unchecked) match {
-            case JsArray(ss) => for (JsString(s) <- ss) yield s
-          }
-          repomap(name) = Repo(
-            dir = str(conf("dir")),
-            origin = str(conf("origin")),
-            mirrors = strings(conf("mirrors"))
-          )
-        }
+      }
+      repomap
     }
-    repomap
+
+    def versionFromFile(file: File, labels: List[String]): String = {
+      val fis = new FileInputStream(file)
+      val props = new java.util.Properties()
+      try props.load(fis)
+      finally fis.close()
+      labels.map(label => Option(props.getProperty(label)).get).mkString(".")
+    }
+
   }
 
 }

@@ -75,7 +75,8 @@ object MechaBuild extends Build {
     version <<= frameworkVersion,
     organization := "com.storm-enroute",
     libraryDependencies ++= Seq(
-      "commons-io" % "commons-io" % "2.4"
+      "commons-io" % "commons-io" % "2.4",
+      "io.spray" %%  "spray-json" % "1.3.1"
     )
   )
 

@@ -45,7 +45,9 @@ trait MechaSuperBuild extends Build {
   
   /** Holds the configuration of repositories in this superrepo.
    */
-  val repositories: Map[String, Repo] = reposFromJson(repositoriesFile)
+  val repositories: Map[String, Repo] = {
+    ConfigParsers.reposFromJson(repositoriesFile)
+  }
   
   override def projects: Seq[Project] = {
     val otherprojects = super.projects
@@ -138,8 +140,9 @@ object MechaSuperPlugin extends Plugin {
     val args = spaceDelimited("").parsed
     val log = streams.value.log
     log.info("Superproject repositories:")
-    for ((name, repo) <- reposKey.value) {
-      log.info(s"$name")
+    for ((name, repo) <- reposKey.value.toList.sortBy(_._1)) {
+      val tracked = file(repo.dir).exists
+      log.info(s"[${if (tracked) "*" else " "}] $name")
       if (args.contains("-v")) {
         log.info(s"  origin: ${repo.origin}")
         for (mirror <- repo.mirrors) { 
@@ -422,7 +425,7 @@ object MechaSuperPlugin extends Plugin {
             val gitignore = new File(repodir, ".gitignore")
             if (gitignoreSample.exists)
               FileUtils.copyFile(gitignoreSample, gitignore)
-            log.info(s"Please reload the sbt shell.")
+            log.warn(s"Please reload the sbt shell.")
           }
         } catch {
           case t: Throwable =>
