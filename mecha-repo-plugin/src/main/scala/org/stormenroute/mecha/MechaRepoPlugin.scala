@@ -107,7 +107,7 @@ trait MechaRepoBuild extends Build {
     /** Returns the version of the project depending directly on repositories
      *  in the superrepository, if a superrepository is present.
      */
-    def dependsOnSuperRepo: Project = {
+    def aggregateSuperRepo: Project = {
       dependencies match {
         case None =>
           // no dependency information
@@ -124,7 +124,7 @@ trait MechaRepoBuild extends Build {
                 repodir.exists
             }
           ).map(dep => RootProject(file(dep.project)))
-              .foldLeft(p)(_ dependsOn _)
+              .foldLeft(p)(_ aggregate _)
       }
     }
   }

@@ -63,7 +63,7 @@ trait MechaSuperBuild extends Build {
       supername,
       superdirectory,
       settings = supersettings
-    ))(_ dependsOn _)
+    ))(_ aggregate _)
     otherprojects ++ Seq(superproject)
   }
   
