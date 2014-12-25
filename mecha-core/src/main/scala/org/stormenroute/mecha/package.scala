@@ -22,7 +22,7 @@ package mecha {
   object Git {
     def clone(url: String, path: String): Boolean = {
       val dir = new File(path)
-      Process(s"git clone $url .", dir).! == 0
+      Process(s"git clone --progress $url .", dir).! == 0
     }
     def isDirty(path: String): Boolean = {
       isUncommitted(path) || isUnstaged(path)
