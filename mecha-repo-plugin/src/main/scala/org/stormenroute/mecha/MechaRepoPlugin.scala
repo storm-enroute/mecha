@@ -17,10 +17,20 @@ import spray.json.DefaultJsonProtocol._
 trait MechaRepoBuild extends Build {
   import MechaRepoPlugin.Artifact
 
+  /** Dirty hack because sbt does not expose BuildUnit.localBase easily. */
+  def buildBase: File = {
+    if (file(dependenciesPath).exists) file(".")
+    else file(repoName)
+  }
+
+  def repoName: String
+
   /** Location of the repository configuration in the superrepo.
    */
-  def repositoriesFile: File = file("../repos.json")
-  
+  def repositoriesPath: String = "../repos.json"
+
+  final def repositoriesFile: File = new File(buildBase, repositoriesPath)
+
   /** Holds repository configuration if repo is checked out within a
    *  superrepo.
    */
@@ -65,7 +75,9 @@ trait MechaRepoBuild extends Build {
    *
    *      libraryDependencies ++= superRepoDependencies("myProjectName")
    */
-  def dependenciesFile: File = file("dependencies.json")
+  def dependenciesPath: String = "dependencies.json"
+
+  final def dependenciesFile: File = new File(buildBase, dependenciesPath)
 
   /** Maps projects in the build to their dependencies.
    */
@@ -95,7 +107,7 @@ trait MechaRepoBuild extends Build {
               Seq(from(dep.artifact, "Not in a superrepo."))
             case Some(repos) =>
               // inside superrepo
-              val repodir = new File("../" + repos(dep.project).dir)
+              val repodir = new File(buildBase, "../" + repos(dep.project).dir)
               if (repodir.exists) Seq()
               else Seq(from(dep.artifact, "Repository not tracked."))
           }
@@ -107,24 +119,22 @@ trait MechaRepoBuild extends Build {
     /** Returns the version of the project depending directly on repositories
      *  in the superrepository, if a superrepository is present.
      */
-    def aggregateSuperRepo: Project = {
+    def dependsOnSuperRepo: Project = {
       dependencies match {
         case None =>
           // no dependency information
           p
         case Some(deps) =>
-          deps(p.id).filter( dep =>
-            repositories match {
-              case None =>
-                // not in a superrepo -- library dependencies raises the error
-                false
-              case Some(repos) =>
-                // in a superrepo
-                val repodir = new File("../" + repos(dep.project).dir)
-                repodir.exists
-            }
-          ).map(dep => RootProject(file(dep.project)))
-              .foldLeft(p)(_ aggregate _)
+          deps(p.id).filter(dep => repositories match {
+            case None =>
+              // not in a superrepo -- library dependencies raise the error
+              false
+            case Some(repos) =>
+              // in a superrepo
+              val repodir = new File(buildBase, "../" + repos(dep.project).dir)
+              repodir.exists
+          }).map(dep => RootProject(uri("../" + dep.project)))
+            .foldLeft(p)(_ dependsOn _)
       }
     }
   }

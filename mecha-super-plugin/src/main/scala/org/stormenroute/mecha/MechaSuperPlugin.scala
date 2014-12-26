@@ -16,11 +16,11 @@ import org.apache.commons.io._
 
 /** Mixed in with the superrepository root project. */
 trait MechaSuperBuild extends Build {
-  val supername: String
+  val superName: String
   
-  val superdirectory: File
+  val superDirectory: File
   
-  val supersettings: Seq[Setting[_]]
+  val superSettings: Seq[Setting[_]]
   
   /** File that describes all the repositories in this superrepository.
    *
@@ -55,14 +55,14 @@ trait MechaSuperBuild extends Build {
       (name, repo) <- repositories
       dir = file(repo.dir)
       if dir.exists
-      if superdirectory != dir
+      if superDirectory != dir
     } yield {
-      RootProject(file(repo.dir))
+      RootProject(uri(repo.dir))
     }
     val superproject = subprojects.foldLeft(Project(
-      supername,
-      superdirectory,
-      settings = supersettings
+      superName,
+      superDirectory,
+      settings = superSettings
     ))(_ aggregate _)
     otherprojects ++ Seq(superproject)
   }
