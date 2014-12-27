@@ -95,7 +95,7 @@ trait MechaRepoBuild extends Build {
           sys.error(s"Missing artifact information for '$projName'. $msg"))
       a.group % a.project % a.version
     }
-    dependencies match {
+    val requiredArtifacts = dependencies match {
       case None =>
         // no dependency information
         Seq()
@@ -113,6 +113,8 @@ trait MechaRepoBuild extends Build {
           }
         }
     }
+    //println(s"Additional artifacts for '$projName': ${requiredArtifacts}")
+    requiredArtifacts
   }
 
   implicit class ProjectOps(p: Project) {
