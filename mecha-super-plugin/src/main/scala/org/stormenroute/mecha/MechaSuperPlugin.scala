@@ -217,7 +217,7 @@ object MechaSuperPlugin extends Plugin {
         val logger = BufferedLogger()
         Future {
           if (!Git.push(repo.dir, "origin", branch, flags.mkString(" "),
-              logger))
+            logger))
             log.error(s"Push failed: ${repo.dir}")
           (name, logger)
         }
