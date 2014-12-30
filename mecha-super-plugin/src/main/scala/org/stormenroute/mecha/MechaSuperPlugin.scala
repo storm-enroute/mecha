@@ -77,6 +77,11 @@ trait MechaSuperBuild extends Build {
  */
 object MechaSuperPlugin extends Plugin {
 
+  /** Basic query combinator -- asks user for input and retrieves a string. */
+  def string(question: String): input.Query[String] = {
+    () => SimpleReader.readLine(question).filter(_ != "")
+  }
+
   def ifClean(repos: Map[String, Repo], log: Logger)(action: =>Unit): Unit = {
     val dirtyRepos = repos.filter(p => Git.isDirty(p._2.dir))
     if (dirtyRepos.nonEmpty) {

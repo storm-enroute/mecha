@@ -3,6 +3,7 @@ package org.stormenroute
 
 
 import java.io._
+import scala.annotation._
 import scala.collection._
 import scala.sys.process._
 import org.apache.commons.io._
@@ -140,4 +141,44 @@ package object mecha {
 
   }
 
+  /** Combinators for querying user input.
+   */
+  object input {
+    type Query[T] = () => Option[T]
+
+    def pair[P, Q](keyq: Query[P], valq: Query[Q]): Query[(P, Q)] = {
+      () => for {
+        p <- keyq()
+        q <- valq()
+      } yield (p, q)
+    }
+
+    def repeat[T](query: Query[T]): Query[List[T]] = {
+      @tailrec def repeat(acc: List[T]): List[T] = {
+        query() match {
+          case Some(t) => repeat(t :: acc)
+          case None => acc
+        }
+      }
+      () => Some(repeat(Nil).reverse)
+    }
+
+    def map[T, S](query: Query[T])(f: T => S): Query[S] = {
+      () => query().map(f)
+    }
+
+    def traverse[T](queries: Traversable[Query[T]]):
+      Query[Traversable[Option[T]]] = {
+      () => Some(for (q <- queries) yield q())
+    }
+
+    def traverseFull[T](queries: Traversable[Query[T]]):
+      Query[Traversable[T]] = {
+      map(traverse(queries))(_.filter(_.nonEmpty).map(_.get))
+    }
+  }
+
+  implicit class queryOps[T](val query: input.Query[T]) {
+    def map[S](f: T => S): input.Query[S] = input.map(query)(f)
+  }
 }
