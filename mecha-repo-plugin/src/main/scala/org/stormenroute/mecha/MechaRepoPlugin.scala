@@ -17,6 +17,8 @@ import spray.json.DefaultJsonProtocol._
 trait MechaRepoBuild extends Build {
   import MechaRepoPlugin.Artifact
 
+  /* Basic superrepo configuration */
+
   /** Dirty hack because sbt does not expose BuildUnit.localBase easily. */
   def buildBase: File = {
     if (file(dependenciesPath).exists) file(".")
@@ -39,6 +41,8 @@ trait MechaRepoBuild extends Build {
       Some(ConfigParsers.reposFromJson(repositoriesFile))
     else None
   }
+
+  /* Dependencies */
 
   /** File that describes dependencies on the superrepo for the current build.
    *  
@@ -79,26 +83,12 @@ trait MechaRepoBuild extends Build {
 
   final def dependenciesFile: File = new File(buildBase, dependenciesPath)
 
-  /** Queries the user to enter values for the config file.
-   */
-  def generateConfigSbt(log: Logger, configFile: File,
-    query: input.Query[Traversable[(String, String)]]) {
-    val settings = for (kvs <- query().toList; (k, v) <- kvs) yield (k, v)
-    val content = settings.map({case (k, v) => s"$k := $v"}).mkString("\n\n")
-    IO.write(configFile, content)
-  }
-
   /** Maps projects in the build to their dependencies.
    */
   val dependencies: Option[Map[String, Seq[MechaRepoPlugin.Dependency]]] = {
     if (dependenciesFile.exists)
       Some(MechaRepoPlugin.dependenciesFromJson(dependenciesFile))
     else None
-  }
-
-  /** Basic query combinator -- asks user for input and retrieves a string. */
-  def string(question: String): input.Query[String] = {
-    () => SimpleReader.readLine(question).filter(_ != "")
   }
 
   /** Resolves the artifact dependencies based on the superrepo.
@@ -155,12 +145,57 @@ trait MechaRepoBuild extends Build {
     }
   }
 
+  /* Configuration file */
+
+  /** Basic query combinator -- asks user for input and retrieves a string. */
+  def string(question: String): Input.Query[String] = {
+    () => SimpleReader.readLine(question).filter(_ != "")
+  }
+
+  /** File that has to hold configuration settings */
+  def configurationPath: String = "config.sbt"
+
+  def beforeGenerateConfiguration(log: Logger, base: File): Unit = {}
+
+  /** Query that optionally produces the configuration settings. */
+  def configurationQuery: Option[Input.Query[Traversable[(String, String)]]] =
+    None
+
+  def afterGenerateConfiguration(log: Logger, base: File): Unit = {}
+
+  /** Queries the user to enter values for the config file.
+   */
+  def generateConfigFile(log: Logger, base: File, configFile: File,
+    query: Input.Query[Traversable[(String, String)]]) {
+    log.warn(s"Populating configuration file for '$repoName'.")
+    beforeGenerateConfiguration(log, base)
+    val userInput = Input.Queue.submit(query)
+    val settings = for (kvs <- userInput.toList; (k, v) <- kvs) yield (k, v)
+    val content = settings.map({case (k, v) => s"$k := $v"}).mkString("\n\n")
+    IO.write(configFile, content)
+    afterGenerateConfiguration(log, base)
+    log.error(s"Created '${configFile}'. Please reload!")
+  }
+
+  val generateConfigFileTask = MechaRepoPlugin.generateConfigFileKey := {
+    val log = streams.value.log
+    val base = baseDirectory.value
+    val configFile = base / configurationPath
+    for (query <- configurationQuery) {
+      if (!configFile.exists) generateConfigFile(log, base, configFile, query)
+    }
+  }
+
 }
 
 
 /** Added to each repository inside the superrepository.
  */
 object MechaRepoPlugin extends Plugin {
+
+  val generateConfigFileKey = TaskKey[Unit](
+    "generate-config",
+    "Generates the configuration file from user input, if it does not exist.")
 
   case class Artifact(group: String, project: String, version: String)
 

@@ -143,8 +143,24 @@ package object mecha {
 
   /** Combinators for querying user input.
    */
-  object input {
+  object Input {
     type Query[T] = () => Option[T]
+
+    object Queue {
+      private val monitor = new AnyRef
+      /** Enqueues queries and executes them serially. */
+      def submit[T](query: Query[T]): Option[T] = {
+        monitor.synchronized {
+          query()
+        }
+      }
+    }
+
+    /* Combinators. */
+
+    def const[T](v: =>T): Query[T] = {
+      () => Some(v)
+    }
 
     def pair[P, Q](keyq: Query[P], valq: Query[Q]): Query[(P, Q)] = {
       () => for {
@@ -163,6 +179,10 @@ package object mecha {
       () => Some(repeat(Nil).reverse)
     }
 
+    def default[T](query: Query[T])(v: =>T): Query[T] = {
+      () => query().orElse(Some(v))
+    }
+
     def map[T, S](query: Query[T])(f: T => S): Query[S] = {
       () => query().map(f)
     }
@@ -176,9 +196,12 @@ package object mecha {
       Query[Traversable[T]] = {
       map(traverse(queries))(_.filter(_.nonEmpty).map(_.get))
     }
+
   }
 
-  implicit class queryOps[T](val query: input.Query[T]) {
-    def map[S](f: T => S): input.Query[S] = input.map(query)(f)
+  implicit class queryOps[T](val query: Input.Query[T]) {
+    def map[S](f: T => S): Input.Query[S] = Input.map(query)(f)
+    def default(v: =>T): Input.Query[T] = Input.default(query)(v)
   }
+
 }

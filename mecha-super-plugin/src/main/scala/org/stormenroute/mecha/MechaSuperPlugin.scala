@@ -78,7 +78,7 @@ trait MechaSuperBuild extends Build {
 object MechaSuperPlugin extends Plugin {
 
   /** Basic query combinator -- asks user for input and retrieves a string. */
-  def string(question: String): input.Query[String] = {
+  def string(question: String): Input.Query[String] = {
     () => SimpleReader.readLine(question).filter(_ != "")
   }
 
