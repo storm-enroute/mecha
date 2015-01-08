@@ -42,7 +42,7 @@ trait MechaRepoBuild extends Build {
     else None
   }
 
-  /* Dependencies */
+  /* Dependency configuration */
 
   /** File that describes dependencies on the superrepo for the current build.
    *  
@@ -185,6 +185,10 @@ trait MechaRepoBuild extends Build {
       if (!configFile.exists) generateConfigFile(log, base, configFile, query)
     }
   }
+
+  /* tasks and settings */
+
+  //val remoteDeploy
 
 }
 

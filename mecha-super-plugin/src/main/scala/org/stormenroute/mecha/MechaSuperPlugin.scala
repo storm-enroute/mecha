@@ -82,6 +82,12 @@ object MechaSuperPlugin extends Plugin {
     () => SimpleReader.readLine(question).filter(_ != "")
   }
 
+  implicit def logger2MechaLog(log: Logger) = new MechaLog {
+    def info(s: String) = log.info(s)
+    def warn(s: String) = log.warn(s)
+    def error(s: String) = log.error(s)
+  }
+
   def ifClean(repos: Map[String, Repo], log: Logger)(action: =>Unit): Unit = {
     val dirtyRepos = repos.filter(p => Git.isDirty(p._2.dir))
     if (dirtyRepos.nonEmpty) {
@@ -217,15 +223,7 @@ object MechaSuperPlugin extends Plugin {
     val repos = trackedReposKey.value
     ifClean(repos, log) {
       val pushes = for ((name, repo) <- repos) yield {
-        log.info(s"Push '${repo.dir}' to origin...")
-        val branch = Git.branchName(repo.dir)
-        val logger = BufferedLogger()
-        Future {
-          if (!Git.push(repo.dir, "origin", branch, flags.mkString(" "),
-            logger))
-            log.error(s"Push failed: ${repo.dir}")
-          (name, logger)
-        }
+        Repo.push(log, flags, name, repo)
       }
       for (push <- pushes; (name, output) <- push) {
         log.info(s"...::: $name :::...")

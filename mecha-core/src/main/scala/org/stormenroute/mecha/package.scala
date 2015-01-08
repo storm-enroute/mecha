@@ -5,6 +5,9 @@ package org.stormenroute
 import java.io._
 import scala.annotation._
 import scala.collection._
+import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 import scala.sys.process._
 import org.apache.commons.io._
 import spray.json._
@@ -14,10 +17,32 @@ import spray.json.DefaultJsonProtocol._
 
 package mecha {
 
+  trait MechaLog {
+    def info(s: String): Unit
+    def warn(s: String): Unit
+    def error(s: String): Unit
+  }
+
   /** Original repository within this multirepository,
     * in the `dir` directory.
     */
   case class Repo(dir: String, origin: String, mirrors: Seq[String])
+
+  /** Higher-level utility methods for working with repositories. */
+  object Repo {
+    def push(log: MechaLog, flags: Seq[String], name: String, repo: Repo):
+      Future[(String, BufferedLogger)] = {
+      log.info(s"Push '${repo.dir}' to origin...")
+      val branch = Git.branchName(repo.dir)
+      val logger = BufferedLogger()
+      Future {
+        if (!Git.push(repo.dir, "origin", branch, flags.mkString(" "),
+          logger))
+          log.error(s"Push failed: ${repo.dir}")
+        (name, logger)
+      }
+    }
+  }
 
   /** Utility methods for working with Git. */
   object Git {
@@ -90,17 +115,15 @@ package object mecha {
 
   val PrintlnLogger = ProcessLogger(println, println)
 
-  def BufferedLogger(): ProcessLogger with (() => String) = {
+  case class BufferedLogger() extends ProcessLogger with (() => String) {
     val buf = mutable.ArrayBuffer[String]()
-    new ProcessLogger with (() => String) {
-      def err(s: =>String) = buf += s
-      def out(s: =>String) = buf += s
-      def buffer[T](f: =>T) = f
-      def apply() = {
-        val s = buf.mkString("\n")
-        buf.clear()
-        s
-      }
+    def err(s: =>String) = buf += s
+    def out(s: =>String) = buf += s
+    def buffer[T](f: =>T) = f
+    def apply() = {
+      val s = buf.mkString("\n")
+      buf.clear()
+      s
     }
   }
 
