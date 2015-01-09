@@ -152,44 +152,6 @@ trait MechaRepoBuild extends Build {
     () => SimpleReader.readLine(question).filter(_ != "")
   }
 
-  /** File that has to hold configuration settings */
-  def configurationPath: String = "config.sbt"
-
-  def beforeGenerateConfiguration(log: Logger, base: File): Unit = {}
-
-  /** Query that optionally produces the configuration settings. */
-  def configurationQuery: Option[Input.Query[Traversable[(String, String)]]] =
-    None
-
-  def afterGenerateConfiguration(log: Logger, base: File): Unit = {}
-
-  /** Queries the user to enter values for the config file.
-   */
-  def generateConfigFile(log: Logger, base: File, configFile: File,
-    query: Input.Query[Traversable[(String, String)]]) {
-    log.warn(s"Populating configuration file for '$repoName'.")
-    beforeGenerateConfiguration(log, base)
-    val userInput = Input.Queue.submit(query)
-    val settings = for (kvs <- userInput.toList; (k, v) <- kvs) yield (k, v)
-    val content = settings.map({case (k, v) => s"$k := $v"}).mkString("\n\n")
-    IO.write(configFile, content)
-    afterGenerateConfiguration(log, base)
-    log.error(s"Created '${configFile}'. Please reload!")
-  }
-
-  val generateConfigFileTask = MechaRepoPlugin.generateConfigFileKey := {
-    val log = streams.value.log
-    val base = baseDirectory.value
-    val configFile = base / configurationPath
-    for (query <- configurationQuery) {
-      if (!configFile.exists) generateConfigFile(log, base, configFile, query)
-    }
-  }
-
-  /* tasks and settings */
-
-  //val remoteDeploy
-
 }
 
 
@@ -197,9 +159,90 @@ trait MechaRepoBuild extends Build {
  */
 object MechaRepoPlugin extends Plugin {
 
+  /* tasks and settings */
+
+  val configFilePathKey = SettingKey[String](
+    "mecha-config-file-path",
+    "A path to the configuration file."
+  )
+
+  val configQueryKey =
+    SettingKey[Option[Input.Query[Traversable[(String, String)]]]](
+    "mecha-config-query",
+    "An optional configuration query that gives a list of string pairs."
+  )
+
+  val beforeGenerateConfigKey = SettingKey[(Logger, File) => Unit](
+    "mecha-before-generate-config",
+    "Function to execute before generating the configuration."
+  )
+
+  val afterGenerateConfigKey = SettingKey[(Logger, File) => Unit](
+    "mecha-after-generate-config",
+    "Function to execute after generating the configuration."
+  )
+
   val generateConfigFileKey = TaskKey[Unit](
-    "generate-config",
-    "Generates the configuration file from user input, if it does not exist.")
+    "mecha-generate-config",
+    "Generates the configuration file from user input, if it does not exist."
+  )
+
+  val generateConfigFileTask = generateConfigFileKey := {
+    val log = streams.value.log
+    val base = baseDirectory.value
+    val configFile = base / configFilePathKey.value
+    for (query <- configQueryKey.value) {
+      if (!configFile.exists)
+        generateConfigFile(log, base, configFile,
+          beforeGenerateConfigKey.value, afterGenerateConfigKey.value,
+          query)
+    }
+  }
+
+  val sshDeployTask = TaskKey[Unit](
+    "mecha-deploy-ssh",
+    "Pushes the repository contents, checks them out via ssh in a remote " +
+    "repository, and runs a custom command."
+  ) := {
+    println("TODO commit, push, ssh pull, run")
+  }
+
+  val defaultSettings = Seq(
+    configFilePathKey := "config.sbt",
+    configQueryKey := None,
+    beforeGenerateConfigKey := {
+      (log, base) => {}
+    },
+    afterGenerateConfigKey := {
+      (log, base) => {}
+    },
+    generateConfigFileTask,
+    (compile in Compile) <<=
+      (compile in Compile) dependsOn generateConfigFileKey,
+    sshDeployTask
+  )
+
+  /* various utilities */
+
+  /** Queries the user to enter values for the config file.
+   */
+  def generateConfigFile(
+    log: Logger,
+    base: File,
+    configFile: File,
+    beforeGenerateConfig: (Logger, File) => Unit,
+    afterGenerateConfig: (Logger, File) => Unit,
+    query: Input.Query[Traversable[(String, String)]]
+  ) {
+    log.warn(s"Populating configuration file.")
+    beforeGenerateConfig(log, base)
+    val userInput = Input.Queue.submit(query)
+    val settings = for (kvs <- userInput.toList; (k, v) <- kvs) yield (k, v)
+    val content = settings.map({case (k, v) => s"$k := $v"}).mkString("\n\n")
+    IO.write(configFile, content)
+    afterGenerateConfig(log, base)
+    log.error(s"Created '${configFile}'. Please reload!")
+  }
 
   case class Artifact(group: String, project: String, version: String)
 
@@ -231,8 +274,5 @@ object MechaRepoPlugin extends Plugin {
     }
     depmap
   }
-
-  override val projectSettings = Seq(
-  )
 
 }

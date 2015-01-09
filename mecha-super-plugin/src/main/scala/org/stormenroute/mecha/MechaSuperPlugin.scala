@@ -438,7 +438,7 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
-  override val projectSettings = Seq(
+  val defaultSettings = Seq(
     trackedReposTask,
     lsTask,
     statusTask,
