@@ -23,6 +23,10 @@ package mecha {
     def error(s: String): Unit
   }
 
+  trait MechaReader {
+    def readLine(prompt: String): Option[String]
+  }
+
   /** Original repository within this multirepository,
     * in the `dir` directory.
     */
@@ -30,6 +34,22 @@ package mecha {
 
   /** Higher-level utility methods for working with repositories. */
   object Repo {
+    def commit(log: MechaLog, name: String, repo: Repo)(
+      implicit reader: MechaReader): Unit = {
+      if (!Git.addAll(repo.dir)) {
+        log.error(s"Could not stage changes in '${repo.dir}'.")
+      } else {
+        log.info(s"--- diff for '$name' in '${repo.dir}' ---")
+        log.info(Git.diff(repo.dir))
+        log.info(s"--- end of diff for '$name' in '${repo.dir}' ---")
+        reader.readLine("Commit message (empty aborts): ") match {
+          case Some(msg) =>
+            if (!Git.commit(repo.dir, msg)) log.error("Could not commit.")
+          case None =>
+        }
+      }
+    }
+
     def push(log: MechaLog, flags: Seq[String], name: String, repo: Repo):
       Future[(String, BufferedLogger)] = {
       log.info(s"Push '${repo.dir}' to origin...")

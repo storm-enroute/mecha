@@ -88,6 +88,10 @@ object MechaSuperPlugin extends Plugin {
     def error(s: String) = log.error(s)
   }
 
+  implicit val reader = new MechaReader {
+    def readLine(prompt: String) = SimpleReader.readLine(prompt)
+  }
+
   def ifClean(repos: Map[String, Repo], log: Logger)(action: =>Unit): Unit = {
     val dirtyRepos = repos.filter(p => Git.isDirty(p._2.dir))
     if (dirtyRepos.nonEmpty) {
@@ -280,18 +284,7 @@ object MechaSuperPlugin extends Plugin {
     val log = streams.value.log
     val repos = trackedReposKey.value
     for ((name, repo) <- repos; if Git.isDirty(repo.dir)) {
-      if (!Git.addAll(repo.dir)) {
-        log.error(s"Could not stage changes in '${repo.dir}'.")
-      } else {
-        log.info(s"--- diff for '$name' in '${repo.dir}' ---")
-        log.info(Git.diff(repo.dir))
-        log.info(s"--- end of diff for '$name' in '${repo.dir}' ---")
-        SimpleReader.readLine("Commit message (empty aborts): ") match {
-          case Some(msg) =>
-            if (!Git.commit(repo.dir, msg)) log.error("Could not commit.")
-          case None =>
-        }
-      }
+      Repo.commit(log, name, repo)
     }
   }
 

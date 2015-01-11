@@ -159,6 +159,16 @@ trait MechaRepoBuild extends Build {
  */
 object MechaRepoPlugin extends Plugin {
 
+  implicit def logger2MechaLog(log: Logger) = new MechaLog {
+    def info(s: String) = log.info(s)
+    def warn(s: String) = log.warn(s)
+    def error(s: String) = log.error(s)
+  }
+
+  implicit val reader = new MechaReader {
+    def readLine(prompt: String) = SimpleReader.readLine(prompt)
+  }
+
   /* tasks and settings */
 
   val configFilePathKey = SettingKey[String](
@@ -199,12 +209,28 @@ object MechaRepoPlugin extends Plugin {
     }
   }
 
+  val remoteDeployPathKey = SettingKey[String](
+    "mecha-remote-deploy-path",
+    "The path of the repository for remote deployment."
+  )
+
   val sshDeployTask = TaskKey[Unit](
     "mecha-deploy-ssh",
     "Pushes the repository contents, checks them out via ssh in a remote " +
     "repository, and runs a custom command."
   ) := {
-    println("TODO commit, push, ssh pull, run")
+    // commit
+    val log = streams.value.log
+    val name = thisProject.value.id
+    val repo = Repo(baseDirectory.value.getPath, remoteDeployPathKey.value, Nil)
+    Repo.commit(log, name, repo)
+
+    // push
+    // TODO finish this
+    
+    // ssh pull
+
+    // ssh run custom command
   }
 
   val defaultSettings = Seq(
@@ -219,6 +245,7 @@ object MechaRepoPlugin extends Plugin {
     generateConfigFileTask,
     (compile in Compile) <<=
       (compile in Compile) dependsOn generateConfigFileKey,
+    remoteDeployPathKey := "",
     sshDeployTask
   )
 
