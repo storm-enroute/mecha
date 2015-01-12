@@ -227,13 +227,9 @@ object MechaSuperPlugin extends Plugin {
     val repos = trackedReposKey.value
     ifClean(repos, log) {
       val pushes = for ((name, repo) <- repos) yield {
-        Repo.push(log, flags, name, repo)
+        Repo.push(log, flags, name, repo, "origin")
       }
-      for (push <- pushes; (name, output) <- push) {
-        log.info(s"...::: $name :::...")
-        log.info(output())
-      }
-      Await.ready(Future.sequence(pushes), Duration.Inf)
+      Repo.awaitPushes(log, pushes)
     }
   }
 
@@ -283,7 +279,7 @@ object MechaSuperPlugin extends Plugin {
   val commitTask = commitKey := {
     val log = streams.value.log
     val repos = trackedReposKey.value
-    for ((name, repo) <- repos; if Git.isDirty(repo.dir)) {
+    for ((name, repo) <- repos) {
       Repo.commit(log, name, repo)
     }
   }

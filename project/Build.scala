@@ -76,7 +76,8 @@ object MechaBuild extends Build {
     organization := "com.storm-enroute",
     libraryDependencies ++= Seq(
       "commons-io" % "commons-io" % "2.4",
-      "io.spray" %%  "spray-json" % "1.3.1"
+      "io.spray" %%  "spray-json" % "1.3.1",
+      "com.decodified" %% "scala-ssh" % "0.7.0"
     )
   )
 

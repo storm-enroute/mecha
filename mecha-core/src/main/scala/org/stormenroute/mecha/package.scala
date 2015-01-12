@@ -38,7 +38,7 @@ package mecha {
       implicit reader: MechaReader): Unit = {
       if (!Git.addAll(repo.dir)) {
         log.error(s"Could not stage changes in '${repo.dir}'.")
-      } else {
+      } else if (Git.isDirty(repo.dir)) {
         log.info(s"--- diff for '$name' in '${repo.dir}' ---")
         log.info(Git.diff(repo.dir))
         log.info(s"--- end of diff for '$name' in '${repo.dir}' ---")
@@ -50,17 +50,26 @@ package mecha {
       }
     }
 
-    def push(log: MechaLog, flags: Seq[String], name: String, repo: Repo):
-      Future[(String, BufferedLogger)] = {
-      log.info(s"Push '${repo.dir}' to origin...")
+    def push(log: MechaLog, flags: Seq[String], name: String, repo: Repo,
+      remoteName: String): Future[(String, BufferedLogger)] = {
+      log.info(s"Push '${repo.dir}' to '$remoteName'...")
       val branch = Git.branchName(repo.dir)
       val logger = BufferedLogger()
       Future {
-        if (!Git.push(repo.dir, "origin", branch, flags.mkString(" "),
+        if (!Git.push(repo.dir, remoteName, branch, flags.mkString(" "),
           logger))
           log.error(s"Push failed: ${repo.dir}")
         (name, logger)
       }
+    }
+
+    def awaitPushes(log: MechaLog,
+      pushes: Traversable[Future[(String, BufferedLogger)]]): Unit = {
+      for (push <- pushes; (name, output) <- push) {
+        log.info(s"...::: $name :::...")
+        log.info(output())
+      }
+      Await.ready(Future.sequence(pushes), Duration.Inf)
     }
   }
 

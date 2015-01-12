@@ -7,9 +7,13 @@ import sbt.Keys._
 import sbt.complete.DefaultParsers._
 import java.io.File
 import scala.collection._
+import scala.concurrent._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 import org.apache.commons.io._
 import spray.json._
 import spray.json.DefaultJsonProtocol._
+import com.decodified.scalassh._
 
 
 
@@ -148,7 +152,7 @@ trait MechaRepoBuild extends Build {
   /* Configuration file */
 
   /** Basic query combinator -- asks user for input and retrieves a string. */
-  def string(question: String): Input.Query[String] = {
+  def stringQuery(question: String): Input.Query[String] = {
     () => SimpleReader.readLine(question).filter(_ != "")
   }
 
@@ -209,28 +213,68 @@ object MechaRepoPlugin extends Plugin {
     }
   }
 
-  val remoteDeployPathKey = SettingKey[String](
-    "mecha-remote-deploy-path",
-    "The path of the repository for remote deployment."
+  val remoteSshHost = SettingKey[Option[String]](
+    "mecha-remote-ssh-host",
+    "The url of the remote host."
+  )
+
+  val remoteSshUser = SettingKey[String](
+    "mecha-remote-ssh-user",
+    "The user for the remote host."
+  )
+
+  val remoteSshPass = SettingKey[Option[String]](
+    "mecha-remote-ssh-pass",
+    "The pass for the remote host, or `None` to ask each time."
+  )
+
+  val remoteDeployDirKey = SettingKey[String](
+    "mecha-remote-deploy-dir",
+    "The path to the remote directory for deployment."
   )
 
   val sshDeployTask = TaskKey[Unit](
-    "mecha-deploy-ssh",
+    "mecha-ssh-deploy",
     "Pushes the repository contents, checks them out via ssh in a remote " +
     "repository, and runs a custom command."
   ) := {
-    // commit
     val log = streams.value.log
     val name = thisProject.value.id
-    val repo = Repo(baseDirectory.value.getPath, remoteDeployPathKey.value, Nil)
-    Repo.commit(log, name, repo)
-
-    // push
-    // TODO finish this
+    val repo = Repo(baseDirectory.value.getPath, "origin", Nil)
+    if (Git.isDirty(repo.dir)) {
+      // commit
+      Repo.commit(log, name, repo)
+      
+      // push
+      val pushing = Repo.push(log, Nil, name, repo, "origin")
+      Repo.awaitPushes(log, List(pushing))
+    }
     
-    // ssh pull
-
-    // ssh run custom command
+    // ssh pull and run custom command
+    remoteSshHost.value match {
+      case Some(host) =>
+        log.info(s"Pulling at remote host '$host'...")
+        val user = remoteSshUser.value
+        val pass = remoteSshPass.value.getOrElse {
+          SimpleReader.readLine("Password for '$user': ").getOrElse("")
+        }
+        val passProducer = SimplePasswordProducer(pass)
+        val hostConfig = HostConfig(PasswordLogin(user, passProducer))
+        SSH(host, hostConfig) { client =>
+          client.exec("ls -a").right.map { result =>
+            log.info(result.stdOutAsString())
+            result.exitCode match {
+              case Some(code) => log.error(s"$code: ${result.stdErrAsString()}")
+              case None =>
+            }
+          }
+        } match {
+          case Right(ok) => log.info(s"SSH session completed.")
+          case Left(err) => log.error(s"Could not ssh: $err")
+        }
+      case None =>
+        log.error(s"Remote SSH host not set up -- see '$remoteSshHost'.")
+    }
   }
 
   val defaultSettings = Seq(
@@ -245,7 +289,10 @@ object MechaRepoPlugin extends Plugin {
     generateConfigFileTask,
     (compile in Compile) <<=
       (compile in Compile) dependsOn generateConfigFileKey,
-    remoteDeployPathKey := "",
+    remoteSshHost := None,
+    remoteSshUser := "admin",
+    remoteSshPass := None,
+    remoteDeployDirKey := "~",
     sshDeployTask
   )
 
