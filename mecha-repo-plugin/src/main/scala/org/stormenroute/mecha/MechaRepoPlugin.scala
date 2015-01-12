@@ -259,7 +259,9 @@ object MechaRepoPlugin extends Plugin {
           SimpleReader.readLine("Password for '$user': ").getOrElse("")
         }
         val passProducer = SimplePasswordProducer(pass)
-        val hostConfig = HostConfig(PasswordLogin(user, passProducer))
+        val hostConfig = HostConfig(
+          login = PasswordLogin(user, passProducer),
+          hostKeyVerifier = HostKeyVerifiers.DontVerify)
         SSH(host, hostConfig) { client =>
           client.exec("ls -a").right.map { result =>
             log.info(result.stdOutAsString())
@@ -270,7 +272,7 @@ object MechaRepoPlugin extends Plugin {
           }
         } match {
           case Right(ok) => log.info(s"SSH session completed.")
-          case Left(err) => log.error(s"Could not ssh: $err")
+          case Left(err) => log.error(s"$err")
         }
       case None =>
         log.error(s"Remote SSH host not set up -- see '$remoteSshHost'.")
