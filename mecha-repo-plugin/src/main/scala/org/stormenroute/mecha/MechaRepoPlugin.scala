@@ -173,6 +173,23 @@ object MechaRepoPlugin extends Plugin {
     def readLine(prompt: String) = SimpleReader.readLine(prompt)
   }
 
+  implicit class ClientOps(client: SshClient) {
+    def apply(log: Logger, command: String): Int = {
+      val result = client.exec(command).right.map { result =>
+        def print(s: String, f: String => Unit) = if (s != "") f(s)
+        print(result.stdOutAsString(), s => log.info(s))
+        print(result.stdErrAsString(), s => log.warn(s))
+        result.exitCode match {
+          case Some(code) =>
+            code
+          case None =>
+            sys.error(s"No exit code from '$command'.")
+        }
+      }
+      result.fold(sys.error(_), x => x)
+    }
+  }
+
   /* tasks and settings */
 
   val configFilePathKey = SettingKey[String](
@@ -249,6 +266,9 @@ object MechaRepoPlugin extends Plugin {
       val pushing = Repo.push(log, Nil, name, repo, "origin")
       Repo.awaitPushes(log, List(pushing))
     }
+    val repoUrl = Git.remoteUrl(baseDirectory.value.getPath, "origin")
+    val repoDir = thisProject.value.id
+    val deployDir = remoteDeployDirKey.value
     
     // ssh pull and run custom command
     remoteSshHost.value match {
@@ -263,13 +283,23 @@ object MechaRepoPlugin extends Plugin {
           login = PasswordLogin(user, passProducer),
           hostKeyVerifier = HostKeyVerifiers.DontVerify)
         SSH(host, hostConfig) { client =>
-          client.exec("ls -a").right.map { result =>
-            log.info(result.stdOutAsString())
-            result.exitCode match {
-              case Some(code) => log.error(s"$code: ${result.stdErrAsString()}")
-              case None =>
+          // change to deploy dir
+          if (client(log, s"cd $deployDir") != 0) {
+            log.error("Deploy dir does not exist.")
+          } else {
+            if (client(log, s"""[ -d "$repoDir" ]""") != 0) {
+              client(log, s"mkdir $repoDir")
+            }
+            client(log, s"cd $repoDir")
+
+            // check if fresh checkout required
+            if (client(log, "git rev-parse") != 0) {
+              log.warn("Checking out repository for the first time.")
+              client(log, s"git clone $repoUrl .")
             }
           }
+
+          ()
         } match {
           case Right(ok) => log.info(s"SSH session completed.")
           case Left(err) => log.error(s"$err")
