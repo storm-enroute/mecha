@@ -6,8 +6,8 @@ SCRIPT_PATH=`dirname $0`
 
 . $SCRIPT_PATH/../version.conf
 
-PROJECT_NAME="bundleboy"
-VERSION="$bundleboy_major.$bundleboy_minor"
+PROJECT_NAME="mecha"
+VERSION="$mecha_major.$mecha_minor"
 TMP_DOCS_DIR=`mktemp -d`
 WORKING_DIR=`mktemp -d`
 REPO_GIT_URL="git@github.com:storm-enroute/apidocs.git"
