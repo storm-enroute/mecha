@@ -245,9 +245,14 @@ object MechaRepoPlugin extends Plugin {
     "The pass for the remote host, or `None` to ask each time."
   )
 
-  val remoteDeployDirKey = SettingKey[String](
-    "mecha-remote-deploy-dir",
+  val remoteDeployPathKey = SettingKey[String](
+    "mecha-remote-deploy-path",
     "The path to the remote directory for deployment."
+  )
+
+  val remoteDeployCmdKey = SettingKey[String](
+    "mecha-remote-deploy-cmd",
+    "The command for remote deployment."
   )
 
   val sshDeployTask = TaskKey[Unit](
@@ -267,13 +272,16 @@ object MechaRepoPlugin extends Plugin {
       Repo.awaitPushes(log, List(pushing))
     }
     val repoUrl = Git.remoteUrl(baseDirectory.value.getPath, "origin")
+    val deployPath = remoteDeployPathKey.value
     val repoDir = thisProject.value.id
-    val deployDir = remoteDeployDirKey.value
-    
+    val repoPath = deployPath + "/" + repoDir
+    val deployCmd = remoteDeployCmdKey.value
+
     // ssh pull and run custom command
     remoteSshHost.value match {
       case Some(host) =>
         log.info(s"Pulling at remote host '$host'...")
+        log.info(s"repoUrl: ${repoUrl}")
         val user = remoteSshUser.value
         val pass = remoteSshPass.value.getOrElse {
           SimpleReader.readLine("Password for '$user': ").getOrElse("")
@@ -284,19 +292,24 @@ object MechaRepoPlugin extends Plugin {
           hostKeyVerifier = HostKeyVerifiers.DontVerify)
         SSH(host, hostConfig) { client =>
           // change to deploy dir
-          if (client(log, s"cd $deployDir") != 0) {
+          if (client(log, s"cd $deployPath") != 0) {
             log.error("Deploy dir does not exist.")
           } else {
-            if (client(log, s"""[ -d "$repoDir" ]""") != 0) {
-              client(log, s"mkdir $repoDir")
+            if (client(log, s"""[ -d "$repoPath" ]""") != 0) {
+              client(log, s"mkdir $repoPath")
             }
-            client(log, s"cd $repoDir")
+            client(log, s"cd $repoPath; pwd")
 
             // check if fresh checkout required
-            if (client(log, "git rev-parse") != 0) {
+            if (client(log, s"cd $repoPath; git rev-parse") != 0) {
               log.warn("Checking out repository for the first time.")
-              client(log, s"git clone $repoUrl .")
+              client(log, s"cd $repoPath; git clone $repoUrl .")
+            } else {
+              log.info("Pulling from upstream.")
+              client(log, s"cd $repoPath; git pull")
             }
+
+            client(log, s"cd $repoPath; $deployCmd")
           }
 
           ()
@@ -324,7 +337,8 @@ object MechaRepoPlugin extends Plugin {
     remoteSshHost := None,
     remoteSshUser := "admin",
     remoteSshPass := None,
-    remoteDeployDirKey := "~",
+    remoteDeployPathKey := "~",
+    remoteDeployCmdKey := "echo 'No deploy command specified.'",
     sshDeployTask
   )
 

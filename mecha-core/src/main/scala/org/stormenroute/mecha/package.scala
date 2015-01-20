@@ -92,7 +92,7 @@ package mecha {
     }
     def remoteUrl(path: String, remoteName: String): String = {
       val dir = new File(path)
-      Process(s"git config --get remote.$remoteName.url", dir).!!
+      Process(s"git config --get remote.$remoteName.url", dir).!!.trim
     }
     def pull(path: String, location: String): Boolean = {
       val dir = new File(path)
