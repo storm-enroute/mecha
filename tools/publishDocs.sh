@@ -7,7 +7,7 @@ SCRIPT_PATH=`dirname $0`
 . $SCRIPT_PATH/../version.conf
 
 PROJECT_NAME="mecha"
-VERSION="$mecha_major.$mecha_minor"
+VERSION=`echo "|$mecha_major|" | tr '\n' ''`.`echo "|$mecha_minor|" | tr '\n' ''`
 TMP_DOCS_DIR=`mktemp -d`
 WORKING_DIR=`mktemp -d`
 REPO_GIT_URL="git@github.com:storm-enroute/apidocs.git"
