@@ -36,7 +36,29 @@ object MechaBuild extends Build {
     libraryDependencies ++= Seq(
       "io.spray" %%  "spray-json" % "1.3.1",
       "commons-io" % "commons-io" % "2.4"
-    )
+    ),
+    publishArtifact in Test := false,
+    pomIncludeRepository := { _ => false },
+    pomExtra :=
+      <url>http://storm-enroute.com/</url>
+      <licenses>
+        <license>
+          <name>BSD-style</name>
+          <url>http://opensource.org/licenses/BSD-3-Clause</url>
+          <distribution>repo</distribution>
+        </license>
+      </licenses>
+      <scm>
+        <url>git@github.com:storm-enroute/mecha.git</url>
+        <connection>scm:git:git@github.com:storm-enroute/mecha.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>axel22</id>
+          <name>Aleksandar Prokopec</name>
+          <url>http://axel22.github.com/</url>
+        </developer>
+      </developers>
   )
 
   lazy val mechaCore = Project(
@@ -55,7 +77,29 @@ object MechaBuild extends Build {
     organization := "com.storm-enroute",
     libraryDependencies ++= Seq(
       "commons-io" % "commons-io" % "2.4"
-    )
+    ),
+    publishArtifact in Test := false,
+    pomIncludeRepository := { _ => false },
+    pomExtra :=
+      <url>http://storm-enroute.com/</url>
+      <licenses>
+        <license>
+          <name>BSD-style</name>
+          <url>http://opensource.org/licenses/BSD-3-Clause</url>
+          <distribution>repo</distribution>
+        </license>
+      </licenses>
+      <scm>
+        <url>git@github.com:storm-enroute/mecha.git</url>
+        <connection>scm:git:git@github.com:storm-enroute/mecha.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>axel22</id>
+          <name>Aleksandar Prokopec</name>
+          <url>http://axel22.github.com/</url>
+        </developer>
+      </developers>
   )
 
   lazy val mechaSuperPlugin = Project(
@@ -78,7 +122,29 @@ object MechaBuild extends Build {
       "commons-io" % "commons-io" % "2.4",
       "io.spray" %%  "spray-json" % "1.3.1",
       "com.decodified" %% "scala-ssh" % "0.7.0"
-    )
+    ),
+    publishArtifact in Test := false,
+    pomIncludeRepository := { _ => false },
+    pomExtra :=
+      <url>http://storm-enroute.com/</url>
+      <licenses>
+        <license>
+          <name>BSD-style</name>
+          <url>http://opensource.org/licenses/BSD-3-Clause</url>
+          <distribution>repo</distribution>
+        </license>
+      </licenses>
+      <scm>
+        <url>git@github.com:storm-enroute/mecha.git</url>
+        <connection>scm:git:git@github.com:storm-enroute/mecha.git</connection>
+      </scm>
+      <developers>
+        <developer>
+          <id>axel22</id>
+          <name>Aleksandar Prokopec</name>
+          <url>http://axel22.github.com/</url>
+        </developer>
+      </developers>
   )
 
   lazy val mechaRepoPlugin = Project(
