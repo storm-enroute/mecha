@@ -250,7 +250,7 @@ object MechaRepoPlugin extends Plugin {
     "The path to the remote directory for deployment."
   )
 
-  val remoteDeployCmdKey = SettingKey[String](
+  val remoteDeployCmdKey = SettingKey[Option[String]](
     "mecha-remote-deploy-cmd",
     "The command for remote deployment."
   )
@@ -309,7 +309,12 @@ object MechaRepoPlugin extends Plugin {
               client(log, s"cd $repoPath; git pull")
             }
 
-            client(log, s"cd $repoPath; $deployCmd")
+            deployCmd match {
+              case Some(cmd) =>
+                client(log, s"cd $repoPath; $cmd")
+              case None =>
+                log.warn("echo 'No deploy command specified.'")
+            }
           }
 
           ()
@@ -338,7 +343,7 @@ object MechaRepoPlugin extends Plugin {
     remoteSshUser := "admin",
     remoteSshPass := None,
     remoteDeployPathKey := "~",
-    remoteDeployCmdKey := "echo 'No deploy command specified.'",
+    remoteDeployCmdKey := None,
     sshDeployTask
   )
 
