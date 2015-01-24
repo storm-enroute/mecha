@@ -2,7 +2,7 @@ package org.stormenroute
 
 
 
-import sbt._
+import sbt.{Future => _, SimpleReader}
 import java.io._
 import scala.annotation._
 import scala.collection._
