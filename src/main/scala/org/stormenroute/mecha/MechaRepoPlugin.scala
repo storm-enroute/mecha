@@ -333,13 +333,18 @@ object MechaRepoPlugin extends Plugin {
     },
     generateConfigFileTask,
     (compile in Compile) <<=
-      (compile in Compile) dependsOn generateConfigFileKey,
+      (compile in Compile).dependsOn(generateConfigFileKey),
     remoteSshHost := None,
     remoteSshUser := "admin",
     remoteSshPass := None,
     remoteDeployPathKey := "~",
     remoteDeployCmdKey := None,
-    sshDeployTask
+    sshDeployTask,
+    mechaPublishKey := {},
+    nightlyKey := {},
+    nightlyKey <<= nightlyKey.dependsOn(mechaPublishKey),
+    nightlyKey <<= nightlyKey.dependsOn(test in Test),
+    nightlyKey <<= nightlyKey.dependsOn(packageBin in Compile)
   )
 
   /* various utilities */

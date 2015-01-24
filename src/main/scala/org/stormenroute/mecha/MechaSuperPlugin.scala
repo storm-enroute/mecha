@@ -50,19 +50,24 @@ trait MechaSuperBuild extends Build {
   }
   
   override def projects: Seq[Project] = {
+    val nothing = Def.task[Unit] {}
     val otherprojects = super.projects
     val subprojects = for {
-      (name, repo) <- repositories
+      (name, repo) <- repositories.toList
       dir = file(repo.dir)
       if dir.exists
       if superDirectory != dir
     } yield {
       RootProject(uri(repo.dir))
     }
+    val cleans = for (p <- subprojects) yield (clean in p)
+    val nightlies = for (p <- subprojects) yield (nightlyKey in p).or(nothing)
     val superproject = subprojects.foldLeft(Project(
       superName,
       superDirectory,
-      settings = superSettings
+      settings = superSettings ++ Seq(
+        nightlyKey <<= nightlyKey.dependsOn(nightlies: _*)
+      )
     ))(_ aggregate _)
     otherprojects ++ Seq(superproject)
   }
@@ -70,6 +75,32 @@ trait MechaSuperBuild extends Build {
   override def settings = super.settings ++ Seq(
     MechaSuperPlugin.reposKey := repositories
   )
+
+  lazy val defaultMechaSuperSettings = {
+    import MechaSuperPlugin._
+    Seq(
+      trackedReposTask,
+      lsTask,
+      statusTask,
+      diffTask,
+      newBranchTask,
+      branchTask,
+      checkoutTask,
+      pullTask,
+      pushTask,
+      pullMirrorTask,
+      pushMirrorTask,
+      commitTask,
+      mergeTask,
+      trackTask,
+      mechaPublishKey := {},
+      nightlyKey := {},
+      nightlyKey <<= nightlyKey.dependsOn(mechaPublishKey),
+      nightlyKey <<= nightlyKey.dependsOn(test in Test),
+      nightlyKey <<= nightlyKey.dependsOn(packageBin in Compile)
+    )
+  }
+
 }
 
 
@@ -130,11 +161,13 @@ object MechaSuperPlugin extends Plugin {
   }
 
   val reposKey = SettingKey[Map[String, Repo]](
-    "mecha-repos", "Information about all the repos."
+    "mecha-repos",
+    "Information about all the repos."
   )
 
   val trackedReposKey = SettingKey[Map[String, Repo]](
-    "mecha-tracked-repos", "Information about the tracked repos."
+    "mecha-tracked-repos",
+    "Information about the tracked repos."
   )
 
   val trackedReposTask = trackedReposKey := {
@@ -421,22 +454,5 @@ object MechaSuperPlugin extends Plugin {
         }
     }
   }
-
-  val defaultSettings = Seq(
-    trackedReposTask,
-    lsTask,
-    statusTask,
-    diffTask,
-    newBranchTask,
-    branchTask,
-    checkoutTask,
-    pullTask,
-    pushTask,
-    pullMirrorTask,
-    pushMirrorTask,
-    commitTask,
-    mergeTask,
-    trackTask
-  )
 
 }

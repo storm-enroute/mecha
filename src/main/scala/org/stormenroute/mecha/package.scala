@@ -2,7 +2,8 @@ package org.stormenroute
 
 
 
-import sbt.{Future => _, SimpleReader}
+import sbt.{Future => _, Process => _, ProcessLogger => _, _}
+import sbt.Keys._
 import java.io._
 import scala.annotation._
 import scala.collection._
@@ -146,6 +147,21 @@ package mecha {
 
 
 package object mecha {
+
+  /* tasks */
+
+  val mechaPublishKey = TaskKey[Unit](
+    "mecha-publish",
+    "By default does nothing, but may be overridden to publish the project. " +
+    "It is invoked by the nightly task."
+  )
+
+  val nightlyKey = TaskKey[Unit](
+    "mecha-nightly",
+    "Runs the nightly build: tests all projects, publishes snapshots."
+  )
+
+  /* utils */
 
   val PrintlnLogger = ProcessLogger(println, println)
 
