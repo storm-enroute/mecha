@@ -151,11 +151,6 @@ trait MechaRepoBuild extends Build {
 
   /* Configuration file */
 
-  /** Basic query combinator -- asks user for input and retrieves a string. */
-  def stringQuery(question: String): Input.Query[String] = {
-    () => SimpleReader.readLine(question).filter(_ != "")
-  }
-
 }
 
 

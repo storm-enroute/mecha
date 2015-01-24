@@ -2,6 +2,7 @@ package org.stormenroute
 
 
 
+import sbt._
 import java.io._
 import scala.annotation._
 import scala.collection._
@@ -213,6 +214,11 @@ package object mecha {
     }
 
     /* Combinators. */
+
+    /** Basic query combinator -- asks user for input and retrieves a string. */
+    def stringQuery(question: String): Input.Query[String] = {
+      () => SimpleReader.readLine(question).filter(_ != "")
+    }
 
     def const[T](v: =>T): Query[T] = {
       () => Some(v)

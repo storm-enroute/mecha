@@ -77,11 +77,6 @@ trait MechaSuperBuild extends Build {
  */
 object MechaSuperPlugin extends Plugin {
 
-  /** Basic query combinator -- asks user for input and retrieves a string. */
-  def string(question: String): Input.Query[String] = {
-    () => SimpleReader.readLine(question).filter(_ != "")
-  }
-
   implicit def logger2MechaLog(log: Logger) = new MechaLog {
     def info(s: String) = log.info(s)
     def warn(s: String) = log.warn(s)
