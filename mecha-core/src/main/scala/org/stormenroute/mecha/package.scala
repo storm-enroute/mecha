@@ -66,7 +66,7 @@ package mecha {
     def awaitPushes(log: MechaLog,
       pushes: Traversable[Future[(String, BufferedLogger)]]): Unit = {
       for (push <- pushes; (name, output) <- push) {
-        log.info(s"...::: $name :::...")
+        log.info(s"------ $name ------")
         log.info(output())
       }
       Await.ready(Future.sequence(pushes), Duration.Inf)

@@ -177,7 +177,7 @@ object MechaSuperPlugin extends Plugin {
     val repos = trackedReposKey.value
     for ((name, repo) <- repos) {
       val status = Git.status(repo.dir)
-      log.info(s"...::: repo '${name}', directory '${repo.dir}' :::...")
+      log.info(s"------ repo '${name}', directory '${repo.dir}' ------")
       log.info(status)
       log.info("")
     }
@@ -192,9 +192,9 @@ object MechaSuperPlugin extends Plugin {
     val log = streams.value.log
     val repos = trackedReposKey.value
     for ((name, repo) <- repos) {
-      log.info(s"...::: diff for repo '$name' in '${repo.dir}' :::...")
+      log.info(s"------ diff for repo '$name' in '${repo.dir}' ------")
       log.info(Git.diff(repo.dir))
-      log.info(s"...::: end of diff for repo '$name' in '${repo.dir}' :::...")
+      log.info(s"------ end of diff for repo '$name' in '${repo.dir}' ------")
     }
   }
 
