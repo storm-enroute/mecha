@@ -61,12 +61,18 @@ trait MechaSuperBuild extends Build {
       RootProject(uri(repo.dir))
     }
     val cleans = for (p <- subprojects) yield (clean in p)
-    val nightlies = for (p <- subprojects) yield (nightlyKey in p).or(nothing)
+    val nightlies = for (p <- subprojects) yield {
+      (mechaNightlyKey in p).or(nothing)
+    }
+    val refreshes = for (p <- subprojects) yield {
+      (mechaEditRefreshKey in p).or(nothing)
+    }
     val superproject = subprojects.foldLeft(Project(
       superName,
       superDirectory,
       settings = superSettings ++ Seq(
-        nightlyKey <<= nightlyKey.dependsOn(nightlies: _*)
+        mechaEditRefreshKey <<= mechaEditRefreshKey.dependsOn(refreshes: _*),
+        mechaNightlyKey <<= mechaNightlyKey.dependsOn(nightlies: _*)
       )
     ))(_ aggregate _)
     otherprojects ++ Seq(superproject)
@@ -93,11 +99,12 @@ trait MechaSuperBuild extends Build {
       commitTask,
       mergeTask,
       trackTask,
+      mechaEditRefreshKey := {},
       mechaPublishKey := {},
-      nightlyKey := {},
-      nightlyKey <<= nightlyKey.dependsOn(mechaPublishKey),
-      nightlyKey <<= nightlyKey.dependsOn(test in Test),
-      nightlyKey <<= nightlyKey.dependsOn(packageBin in Compile)
+      mechaNightlyKey := {},
+      mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishKey),
+      mechaNightlyKey <<= mechaNightlyKey.dependsOn(test in Test),
+      mechaNightlyKey <<= mechaNightlyKey.dependsOn(packageBin in Compile)
     )
   }
 

@@ -340,11 +340,12 @@ object MechaRepoPlugin extends Plugin {
     remoteDeployPathKey := "~",
     remoteDeployCmdKey := None,
     sshDeployTask,
+    mechaEditRefreshKey := {},
     mechaPublishKey := {},
-    nightlyKey := {},
-    nightlyKey <<= nightlyKey.dependsOn(mechaPublishKey),
-    nightlyKey <<= nightlyKey.dependsOn(test in Test),
-    nightlyKey <<= nightlyKey.dependsOn(packageBin in Compile)
+    mechaNightlyKey := {},
+    mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishKey),
+    mechaNightlyKey <<= mechaNightlyKey.dependsOn(test in Test),
+    mechaNightlyKey <<= mechaNightlyKey.dependsOn(packageBin in Compile)
   )
 
   /* various utilities */

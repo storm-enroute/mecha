@@ -150,13 +150,20 @@ package object mecha {
 
   /* tasks */
 
+  val mechaEditRefreshKey = TaskKey[Unit](
+    "mecha-edit-refresh",
+    "By default does nothing, but may be overridden to perform actions " +
+    "needed for the edit-refresh cycle (such as compilation). " +
+    "Running this task on the super repo invokes the same task on all repos."
+  )
+
   val mechaPublishKey = TaskKey[Unit](
     "mecha-publish",
     "By default does nothing, but may be overridden to publish the project. " +
     "It is invoked by the nightly task."
   )
 
-  val nightlyKey = TaskKey[Unit](
+  val mechaNightlyKey = TaskKey[Unit](
     "mecha-nightly",
     "Runs the nightly build: tests all projects, publishes snapshots."
   )
