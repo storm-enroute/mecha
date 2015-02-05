@@ -39,6 +39,14 @@ object MechaBuild extends Build {
       "commons-io" % "commons-io" % "2.4",
       "com.decodified" %% "scala-ssh" % "0.7.0"
     ),
+    publishMavenStyle := true,
+    publishTo <<= version { (v: String) =>
+      val nexus = "https://oss.sonatype.org/"
+      if (v.trim.endsWith("SNAPSHOT"))
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    },
     publishArtifact in Test := false,
     pomIncludeRepository := { _ => false },
     pomExtra :=
