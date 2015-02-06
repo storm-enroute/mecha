@@ -133,9 +133,9 @@ package mecha {
       val dir = new File(path)
       Process(s"git checkout -b $name", dir).! == 0
     }
-    def status(path: String): String = {
+    def status(path: String, flags: String = ""): String = {
       val dir = new File(path)
-      Process(s"git -c color.status=always status", dir).!!
+      Process(s"git -c color.status=always status $flags", dir).!!
     }
     def merge(path: String, branch: String): Boolean = {
       val dir = new File(path)
