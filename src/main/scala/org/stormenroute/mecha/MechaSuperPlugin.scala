@@ -211,10 +211,12 @@ object MechaSuperPlugin extends Plugin {
     val log = streams.value.log
     val repos = trackedReposKey.value
     for ((name, repo) <- repos) {
-      val status = Git.status(repo.dir)
-      log.info(s"------ repo '${name}', directory '${repo.dir}' ------")
-      log.info(status)
-      log.info("")
+      val status = Git.status(repo.dir, "--porcelain")
+      if (status.trim != "") {
+        log.info(s"------ status for repo '${name}' in '${repo.dir}' ------")
+        log.info(Git.status(repo.dir))
+        log.info(s"------ end of status for repo '${name}' ------")
+      }
     }
   }
 
