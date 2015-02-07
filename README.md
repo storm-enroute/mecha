@@ -1,7 +1,6 @@
 
 ![Mecha](/docs/mecha-logo-128.png)
 
-
 ## Mecha
 
 SBT plugin that automates super-repository management.
