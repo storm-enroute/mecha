@@ -10,7 +10,7 @@ repositories for different projects.
 Mecha is an ideal solution when you want to compile your projects against the
 latest version of fast moving dependencies, as the source codes of all your projects
 get pulled, compiled, committed, and pushed together.
-Guaranteed to boost productivity.
+Guaranteed to boost productivity!
 
 - supports super-repositories that contain multiple child repositories
 - bulk pull, branch, merge, push, and mirroring for child repositories
