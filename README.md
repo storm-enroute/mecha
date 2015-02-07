@@ -16,3 +16,4 @@ latest version of fast moving dependencies.
 - optional tracking for child repositories
 - automatic source/library dependency configuration in child repositories
 - automatic configuration file generation
+- automated remote deploys over SSH
