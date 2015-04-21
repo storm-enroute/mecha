@@ -1,5 +1,5 @@
 
-![Mecha](/docs/mecha-logo-128.png)
+![Mecha](/docs/mecha-logo-256-soft.png)
 
 
 ## Mecha
