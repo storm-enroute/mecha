@@ -23,7 +23,7 @@ Guaranteed to boost productivity!
 - optional tracking for child repositories
 - automatic source/library dependency configuration in child repositories
 - automatic configuration file generation
-- automated remote deploys over SSH
+- automated remote deployments over SSH
 
 In the following, we describe the main features of Mecha.
 
