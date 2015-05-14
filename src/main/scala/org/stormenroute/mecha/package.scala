@@ -58,8 +58,7 @@ package mecha {
       val branch = Git.branchName(repo.dir)
       val logger = BufferedLogger()
       Future {
-        if (!Git.push(repo.dir, remoteName, branch, flags.mkString(" "),
-          logger))
+        if (!Git.push(repo.dir, remoteName, branch, flags.mkString(" "), logger))
           log.error(s"Push failed: ${repo.dir}")
         (name, logger)
       }
