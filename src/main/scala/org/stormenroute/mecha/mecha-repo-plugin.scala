@@ -61,6 +61,10 @@ trait MechaRepoBuild extends Build {
    *          {
    *            "project": "yetAnotherProjectName",
    *            "artifact": null
+   *          },
+   *          {
+   *            "project": "scalameter",
+   *            "artifact": ["com.storm-enroute", "scalameter", "0.6", "test"]
    *          }
    *        ],
    *        "myCoreProjectName": []
