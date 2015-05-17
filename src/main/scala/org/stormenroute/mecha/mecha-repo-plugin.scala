@@ -2,18 +2,18 @@ package org.stormenroute.mecha
 
 
 
+import com.decodified.scalassh._
+import java.io.File
+import org.apache.commons.io._
 import sbt._
 import sbt.Keys._
 import sbt.complete.DefaultParsers._
-import java.io.File
 import scala.collection._
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import org.apache.commons.io._
 import spray.json._
 import spray.json.DefaultJsonProtocol._
-import com.decodified.scalassh._
 
 
 
@@ -326,6 +326,49 @@ object MechaRepoPlugin extends Plugin {
     }
   }
 
+  private val publishScript: String = {
+    val in = this.getClass.getResourceAsStream("/publishContent.sh")
+    val writer = new java.io.StringWriter
+    IOUtils.copy(in, writer, java.nio.charset.StandardCharsets.UTF_8)
+    val script = writer.toString()
+    script
+  }
+
+  private def publishContent(log: sbt.Logger, projectName: String, version: String,
+    scalaVersion: String, repoGitUrl: String, branch: String, contentSubDir: String,
+    contentSourcePath: String): Unit = {
+    val scriptFile = File.createTempFile("publish-content", ".sh")
+    try {
+      FileUtils.writeStringToFile(scriptFile, publishScript)
+      val command = s"sh ${scriptFile.getPath} $projectName $version $scalaVersion " +
+        s"$repoGitUrl $branch $contentSubDir $contentSourcePath"
+      command.!
+    } finally {
+      scriptFile.delete()
+    }
+  }
+
+  val mechaPublishDocsTask = mechaPublishDocsKey := {
+    val log = streams.value.log
+    val gitUrl = mechaDocsRepoKey.value
+    val branch = mechaDocsBranchKey.value
+    val path = mechaDocsPathKey.value
+    if (gitUrl == "" || branch == "" || path == "") {
+      log.warn("Not publishing docs due to incomplete configuration.")
+      log.warn(s"(url = '$gitUrl', branch = '$branch', path = '$path')")
+    } else {
+      val projDir = baseDirectory.value
+      val contentSourcePath = s"$projDir/target/scala-${scalaVersion.value}/api"
+      val contentSubDir = s"$path/$version"
+      publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
+        contentSourcePath, contentSubDir)
+    }
+  }
+
+  val mechaPublishBenchesTask = mechaPublishBenchesKey := {
+
+  }
+
   val defaultSettings = Seq(
     configFilePathKey := "config.sbt",
     configQueryKey := None,
@@ -345,8 +388,19 @@ object MechaRepoPlugin extends Plugin {
     remoteDeployCmdKey := None,
     sshDeployTask,
     mechaEditRefreshKey := {},
+    mechaBenchRepoKey := "",
+    mechaBenchBranchKey := "",
+    mechaBenchPathKey := "",
+    mechaPublishBenchesTask,
+    mechaDocsRepoKey := "",
+    mechaDocsBranchKey := "",
+    mechaDocsPathKey := "",
+    mechaPublishDocsTask,
+    mechaPublishDocsKey <<= mechaPublishDocsKey.dependsOn(packageDoc in Compile),
     mechaPublishKey := {},
     mechaNightlyKey := {},
+    mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishBenchesKey),
+    mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishDocsKey),
     mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishKey),
     mechaNightlyKey <<= mechaNightlyKey.dependsOn(test in Test),
     mechaNightlyKey <<= mechaNightlyKey.dependsOn(packageBin in Compile)

@@ -162,6 +162,48 @@ package object mecha {
     "It is invoked by the nightly task."
   )
 
+  val mechaPublishDocsKey = TaskKey[Unit](
+    "mecha-publish-docs",
+    "Pushes the docs to the Git repo, if defined in `mechaDocsRepo`. " +
+    "It is invoked by the nightly task."
+  )
+
+  val mechaPublishBenchesKey = TaskKey[Unit](
+    "mecha-publish-benches",
+    "Pushes the benchmarks to the Git repo, if defined in `mechaBenchRepo`. " +
+    "It is invoked by the nightly task."
+  )
+
+  val mechaBenchRepoKey = SettingKey[String](
+    "mecha-bench-repo",
+    "The URL of the Git repo where benchmarks are published."
+  )
+
+  val mechaBenchBranchKey = SettingKey[String](
+    "mecha-bench-branch",
+    "The branch where benchmarks are published."
+  )
+
+  val mechaBenchPathKey = SettingKey[String](
+    "mecha-bench-path",
+    "The repo-relative path where benchmarks are published."
+  )
+
+  val mechaDocsRepoKey = SettingKey[String](
+    "mecha-docs-repo",
+    "The URL of the Git repo where docs are published."
+  )
+
+  val mechaDocsBranchKey = SettingKey[String](
+    "mecha-docs-branch",
+    "The branch where docs are published."
+  )
+
+  val mechaDocsPathKey = SettingKey[String](
+    "mecha-docs-path",
+    "The repo-relative path where docs are published."
+  )
+
   val mechaNightlyKey = TaskKey[Unit](
     "mecha-nightly",
     "Runs the nightly build: tests all projects, publishes snapshots."
