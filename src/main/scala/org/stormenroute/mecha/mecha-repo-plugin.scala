@@ -101,7 +101,9 @@ trait MechaRepoBuild extends Build {
     def from(art: Option[Artifact], msg: String) = {
       val a = art.getOrElse(
           sys.error(s"Missing artifact information for '$projName'. $msg"))
-      a.group % a.project % a.version
+      var dep = a.group % a.project % a.version
+      a.configuration.foreach(c => dep = dep % c)
+      dep
     }
     val requiredArtifacts = dependencies match {
       case None =>
@@ -368,7 +370,8 @@ object MechaRepoPlugin extends Plugin {
     log.error(s"Created '${configFile}'. Please reload!")
   }
 
-  case class Artifact(group: String, project: String, version: String)
+  case class Artifact(group: String, project: String, version: String,
+    configuration: Option[String])
 
   /** Describes a project dependency. */
   case class Dependency(project: String, artifact: Option[Artifact])
@@ -385,7 +388,9 @@ object MechaRepoPlugin extends Plugin {
       case JsNull =>
         None
       case JsArray(Seq(JsString(org), JsString(proj), JsString(vers))) =>
-        Some(Artifact(org, proj, vers))
+        Some(Artifact(org, proj, vers, None))
+      case JsArray(Seq(JsString(org), JsString(proj), JsString(vers), JsString(c))) =>
+        Some(Artifact(org, proj, vers, Some(c)))
     }
     (tree: @unchecked) match {
       case JsObject(projects) =>
