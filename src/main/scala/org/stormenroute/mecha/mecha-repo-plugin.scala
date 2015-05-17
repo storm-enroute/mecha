@@ -366,7 +366,20 @@ object MechaRepoPlugin extends Plugin {
   }
 
   val mechaPublishBenchesTask = mechaPublishBenchesKey := {
-
+    val log = streams.value.log
+    val gitUrl = mechaBenchRepoKey.value
+    val branch = mechaBenchBranchKey.value
+    val path = mechaBenchPathKey.value
+    if (gitUrl == "" || branch == "" || path == "") {
+      log.warn("Not publishing benchmarks due to incomplete configuration.")
+      log.warn(s"(url = '$gitUrl', branch = '$branch', path = '$path')")
+    } else {
+      val projDir = baseDirectory.value
+      val contentSourcePath = s"$projDir/target/benchmarks"
+      val contentSubDir = s"$path/$version"
+      publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
+        contentSourcePath, contentSubDir)
+    }
   }
 
   val defaultSettings = Seq(
