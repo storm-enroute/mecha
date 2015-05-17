@@ -149,8 +149,6 @@ trait MechaRepoBuild extends Build {
     }
   }
 
-  /* Configuration file */
-
 }
 
 
