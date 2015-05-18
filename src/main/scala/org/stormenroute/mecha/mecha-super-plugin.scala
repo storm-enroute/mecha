@@ -108,6 +108,24 @@ trait MechaSuperBuild extends Build {
     )
   }
 
+  // check if initial pull necessary
+  if (sys.env.get("MECHA_PULL_ON_INIT") == Some("true")) {
+    println("Performing initial pull.")
+    val trackedRepos = repositories.filter(p => file(p._2.dir).exists)
+    MechaSuperPlugin.ifClean(trackedRepos, MechaLog.Println) {
+      // pull from remote branches
+      for ((name, repo) <- trackedRepos) {
+        println(s"Pull repo '${repo.dir}' from origin...")
+        if (!Git.pull(repo.dir, "origin"))
+          scala.Console.err.println(s"Pull failed: ${repo.dir}")
+      }
+    } {
+      sys.exit(1)
+    }
+  } else {
+    println("Environment variable MECHA_PULL_ON_INIT not set to true, no initial pull.")
+  }
+
 }
 
 
@@ -125,12 +143,14 @@ object MechaSuperPlugin extends Plugin {
     def readLine(prompt: String) = SimpleReader.readLine(prompt)
   }
 
-  def ifClean(repos: Map[String, Repo], log: Logger)(action: =>Unit): Unit = {
+  def ifClean(repos: Map[String, Repo], log: MechaLog)(action: =>Unit)
+    (errorAction: =>Unit): Unit = {
     val dirtyRepos = repos.filter(p => Git.isDirty(p._2.dir))
     if (dirtyRepos.nonEmpty) {
       for ((name, repo) <- dirtyRepos) {
         log.error(s"Uncommitted changes: ${repo.dir}")
       }
+      errorAction
     } else {
       action
     }
@@ -246,6 +266,7 @@ object MechaSuperPlugin extends Plugin {
   val pullTask = pullKey := {
     val log = streams.value.log
     val repos = trackedReposKey.value
+
     ifClean(repos, log) {
       // pull from remote branches
       for ((name, repo) <- repos) {
@@ -253,7 +274,7 @@ object MechaSuperPlugin extends Plugin {
         if (!Git.pull(repo.dir, "origin"))
           log.error(s"Pull failed: ${repo.dir}")
       }
-    }
+    } {}
   }
 
   val pushKey = InputKey[Unit](
@@ -270,7 +291,7 @@ object MechaSuperPlugin extends Plugin {
         Repo.push(log, flags, name, repo, "origin")
       }
       Repo.awaitPushes(log, pushes)
-    }
+    } {}
   }
 
   val pullMirrorKey = TaskKey[Unit](
@@ -288,7 +309,7 @@ object MechaSuperPlugin extends Plugin {
         if (!Git.pull(repo.dir, mirror))
           log.error(s"Pull failed: ${repo.dir}")
       }
-    }
+    } {}
   }
 
   val pushMirrorKey = InputKey[Unit](
@@ -308,7 +329,7 @@ object MechaSuperPlugin extends Plugin {
         if (!Git.push(repo.dir, mirror, branch, flags.mkString(" ")))
           log.error(s"Push failed: ${repo.dir}")
       }
-    }
+    } {}
   }
 
   val commitKey = TaskKey[Unit](
@@ -343,7 +364,7 @@ object MechaSuperPlugin extends Plugin {
             }
           }
       }
-    }
+    } {}
   }
 
   val newBranchKey = InputKey[Unit](
@@ -379,7 +400,7 @@ object MechaSuperPlugin extends Plugin {
         case _ =>
           log.error("Aborted.")
       }
-    }
+    } {}
   }
 
   val branchKey = TaskKey[Unit](
@@ -429,7 +450,7 @@ object MechaSuperPlugin extends Plugin {
         case _ =>
           log.error("Aborted.")
       }
-    }
+    } {}
   }
 
   val trackKey = InputKey[Unit](

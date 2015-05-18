@@ -25,6 +25,14 @@ package mecha {
     def error(s: String): Unit
   }
 
+  object MechaLog {
+    object Println extends MechaLog {
+      def info(s: String) = println(s)
+      def warn(s: String) = println(s)
+      def error(s: String) = scala.Console.err.println(s)
+    }
+  }
+
   trait MechaReader {
     def readLine(prompt: String): Option[String]
   }
