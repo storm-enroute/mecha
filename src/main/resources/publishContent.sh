@@ -27,7 +27,7 @@ git fetch --all
 git checkout $BRANCH
 
 rm -rf $CONTENT_SUBDIR
-mkdir $CONTENT_SUBDIR
+mkdir --parents $CONTENT_SUBDIR
 mv $TMP_CONTENT_DIR/* $CONTENT_SUBDIR
 rm -rf $TMP_CONTENT_DIR
 echo "Moved content dir."
