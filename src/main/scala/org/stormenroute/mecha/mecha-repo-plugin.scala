@@ -359,9 +359,9 @@ object MechaRepoPlugin extends Plugin {
     } else {
       val projDir = baseDirectory.value
       val contentSourcePath = s"$projDir/target/scala-${scalaVersion.value}/api"
-      val contentSubDir = s"$path/$version"
+      val contentSubDir = s"$path/${version.value}/"
       publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
-        contentSourcePath, contentSubDir)
+        contentSubDir, contentSourcePath)
     }
   }
 
@@ -376,7 +376,7 @@ object MechaRepoPlugin extends Plugin {
     } else {
       val projDir = baseDirectory.value
       val contentSourcePath = s"$projDir/target/benchmarks"
-      val contentSubDir = s"$path/$version"
+      val contentSubDir = s"$path/${version.value}/"
       publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
         contentSourcePath, contentSubDir)
     }
