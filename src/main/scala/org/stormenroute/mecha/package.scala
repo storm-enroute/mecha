@@ -189,6 +189,11 @@ package object mecha {
     "The repo-relative path where benchmarks are published."
   )
 
+  val mechaBenchSrcPathKey = SettingKey[String](
+    "mecha-bench-src-path",
+    "The local path where benchmarks are (<root>/target/benchmarks by default)."
+  )
+
   val mechaDocsRepoKey = SettingKey[String](
     "mecha-docs-repo",
     "The URL of the Git repo where docs are published."
