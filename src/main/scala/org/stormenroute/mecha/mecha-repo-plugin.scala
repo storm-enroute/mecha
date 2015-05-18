@@ -221,9 +221,11 @@ object MechaRepoPlugin extends Plugin {
     configQuery: Option[Input.Query[Traversable[(String, String)]]],
     log: Logger, base: File, configFile: File,
     beforeGen: (Logger, File) => Unit, afterGen: (Logger, File) => Unit) {
-    for (query <- configQuery) {
-      if (!configFile.exists)
-        generateConfigFile(log, base, configFile, beforeGen, afterGen, query)
+    configQuery match {
+      case None =>
+      case Some(query) =>
+        if (!configFile.exists)
+          generateConfigFile(log, base, configFile, beforeGen, afterGen, query)
     }
   }
 
