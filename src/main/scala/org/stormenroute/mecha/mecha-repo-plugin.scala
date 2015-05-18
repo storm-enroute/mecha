@@ -217,15 +217,24 @@ object MechaRepoPlugin extends Plugin {
     "Generates the configuration file from user input, if it does not exist."
   )
 
-  val generateConfigFileTask = generateConfigFileKey := {
-    val log = streams.value.log
-    val base = baseDirectory.value
-    val configFile = base / configFilePathKey.value
-    for (query <- configQueryKey.value) {
+  def generateConfigFile(
+    configQuery: Option[Input.Query[Traversable[(String, String)]]],
+    log: Logger, base: File, configFile: File,
+    beforeGen: (Logger, File) => Unit, afterGen: (Logger, File) => Unit) {
+    for (query <- configQuery) {
       if (!configFile.exists)
-        generateConfigFile(log, base, configFile,
-          beforeGenerateConfigKey.value, afterGenerateConfigKey.value, query)
+        generateConfigFile(log, base, configFile, beforeGen, afterGen, query)
     }
+  }
+
+  val generateConfigFileTask = generateConfigFileKey := {
+    generateConfigFile(
+      configQueryKey.value,
+      streams.value.log,
+      baseDirectory.value,
+      baseDirectory.value / configFilePathKey.value,
+      beforeGenerateConfigKey.value,
+      afterGenerateConfigKey.value)
   }
 
   val remoteSshHost = SettingKey[Option[String]](
