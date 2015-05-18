@@ -224,8 +224,7 @@ object MechaRepoPlugin extends Plugin {
     for (query <- configQueryKey.value) {
       if (!configFile.exists)
         generateConfigFile(log, base, configFile,
-          beforeGenerateConfigKey.value, afterGenerateConfigKey.value,
-          query)
+          beforeGenerateConfigKey.value, afterGenerateConfigKey.value, query)
     }
   }
 
