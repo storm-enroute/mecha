@@ -103,9 +103,9 @@ package mecha {
       val dir = new File(path)
       Process(s"git config --get remote.$remoteName.url", dir).!!.trim
     }
-    def pull(path: String, location: String): Boolean = {
+    def pull(path: String, location: String, branch: String = ""): Boolean = {
       val dir = new File(path)
-      Process(s"git pull $location", dir).! == 0
+      Process(s"git pull $location $branch", dir).! == 0
     }
     def push(path: String, location: String, branch: String = "",
         flags: String = "", logger: ProcessLogger = PrintlnLogger): Boolean = {

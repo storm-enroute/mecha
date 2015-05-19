@@ -116,7 +116,7 @@ trait MechaSuperBuild extends Build {
       // pull from remote branches
       for ((name, repo) <- trackedRepos) {
         println(s"Pull repo '${repo.dir}' from origin...")
-        if (!Git.pull(repo.dir, "origin"))
+        if (!Git.pull(repo.dir, "origin", "master"))
           scala.Console.err.println(s"Pull failed: ${repo.dir}")
       }
     } {
