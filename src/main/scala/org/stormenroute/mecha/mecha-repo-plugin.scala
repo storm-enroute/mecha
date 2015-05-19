@@ -380,11 +380,12 @@ object MechaRepoPlugin extends Plugin {
     val branch = mechaBenchBranchKey.value
     val path = mechaBenchPathKey.value
     val srcPath = mechaBenchSrcPathKey.value
-    if (gitUrl == "" || branch == "" || path == "") {
+    val contentSourcePath = mechaBenchSrcPathKey.value
+    if (gitUrl == "" || branch == "" || path == "" || contentSourcePath == "") {
       log.warn("Not publishing benchmarks due to incomplete configuration.")
-      log.warn(s"(url = '$gitUrl', branch = '$branch', path = '$path')")
+      log.warn(s"(url = '$gitUrl', branch = '$branch', path = '$path', " +
+        s"srcPath = '$contentSourcePath')")
     } else {
-      val contentSourcePath = mechaBenchSrcPathKey.value
       val contentSubDir = s"$path/${version.value}/"
       publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
         contentSourcePath, contentSubDir)
