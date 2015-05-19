@@ -360,8 +360,8 @@ object MechaRepoPlugin extends Plugin {
 
   private def warnNoPublish(log: Logger, target: String, gitUrl: String, branch: String,
     path: String, contentSourcePath: String) {
-    log.warn(s"Not publishing $target due to incomplete configuration.")
-    log.warn(s"(url = '$gitUrl', branch = '$branch', path = '$path', " +
+    println(s"Not publishing $target due to incomplete configuration.")
+    println(s"(url = '$gitUrl', branch = '$branch', path = '$path', " +
       s"srcPath = '$contentSourcePath')")
   }
 
