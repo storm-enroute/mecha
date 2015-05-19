@@ -358,14 +358,20 @@ object MechaRepoPlugin extends Plugin {
     }
   }
 
+  private def warnNoPublish(log: Logger, target: String, gitUrl: String, branch: String,
+    path: String, contentSourcePath: String) {
+    log.warn(s"Not publishing $target due to incomplete configuration.")
+    log.warn(s"(url = '$gitUrl', branch = '$branch', path = '$path', " +
+      s"srcPath = '$contentSourcePath')")
+  }
+
   val mechaPublishDocsTask = mechaPublishDocsKey := {
     val log = streams.value.log
     val gitUrl = mechaDocsRepoKey.value
     val branch = mechaDocsBranchKey.value
     val path = mechaDocsPathKey.value
     if (gitUrl == "" || branch == "" || path == "") {
-      log.warn("Not publishing docs due to incomplete configuration.")
-      log.warn(s"(url = '$gitUrl', branch = '$branch', path = '$path')")
+      warnNoPublish(log, "docs", gitUrl, branch, path, "<srcPath not required>")
     } else {
       val contentSourcePath = (doc in Compile).value.toString
       val contentSubDir = s"$path/${version.value}/"
@@ -382,9 +388,7 @@ object MechaRepoPlugin extends Plugin {
     val srcPath = mechaBenchSrcPathKey.value
     val contentSourcePath = mechaBenchSrcPathKey.value
     if (gitUrl == "" || branch == "" || path == "" || contentSourcePath == "") {
-      log.warn("Not publishing benchmarks due to incomplete configuration.")
-      log.warn(s"(url = '$gitUrl', branch = '$branch', path = '$path', " +
-        s"srcPath = '$contentSourcePath')")
+      warnNoPublish(log, "benchmarks", gitUrl, branch, path, contentSourcePath)
     } else {
       val contentSubDir = s"$path/${version.value}/"
       publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
