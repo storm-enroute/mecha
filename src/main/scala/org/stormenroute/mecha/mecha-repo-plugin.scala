@@ -406,8 +406,7 @@ object MechaRepoPlugin extends Plugin {
       (log, base) => {}
     },
     generateConfigFileTask,
-    (compile in Compile) <<=
-      (compile in Compile).dependsOn(generateConfigFileKey),
+    (compile in Compile) <<= (compile in Compile).dependsOn(generateConfigFileKey),
     remoteSshHost := None,
     remoteSshUser := "admin",
     remoteSshPass := None,
