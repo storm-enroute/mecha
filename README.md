@@ -3,15 +3,18 @@
 
 ### Mecha -- SBT plugin that automates development workflow.
 
-Did you ever notice yourself working on 10 different projects that depend on each other?
+Ask yourself:
 
-Is publishing a snapshots artifact from one project to compile another project killing
-your productivity?
+- Did you ever notice yourself working on 10 different projects that depend on each
+  other?
 
-Did you ever want to simultaneously work on different Git code repositories as if they
-were one big project, but commit changes to them separately?
+- Is publishing a snapshots artifact from one project to compile another project killing
+  your productivity?
 
-Is automated nightly documentation publishing something you crave for?
+- Did you ever want to simultaneously work on different Git code repositories as if they
+  were one big project, but commit changes to them separately?
+
+- Is automated nightly documentation publishing something you crave for?
 
 If so, you're at the right place.
 Mecha is an SBT plugin that aggregates all the SBT projects that you specify into one
@@ -118,8 +121,6 @@ Initially, we can just keep add the super-project to it:
         {}
 
     The `repos.json` file is called the *super-repo configuration file*.
-    You can override the `repositoriesFile` inside the `MechaSuperBuild` object to
-    change the path to this file.
     At this point we can start SBT inside the super-repo.
 
 
@@ -137,23 +138,24 @@ Let's start SBT inside `mecha-super-repo`.
 The first Mecha command that you need to know about is `mecha-ls`.
 This command will print all the subprojects from the super-repo configuration in
 `repos.json`.
-If we run it for an emprt configuration file, we get:
+If we run it for an empty configuration file, we get:
 
     > mecha-ls
     [info] Superproject repositories:
     [success] Total time: 0 s, completed May 23, 2015 12:24:44 AM
 
 So, let's add some projects.
-Assume that one of your projects uses e.g. ScalaMeter for benchmarking another project.
-You would like to make changes to ScalaMeter nightly version,
-but you want to use them (and verify that your changes are correct) right away.
-The solution is to include ScalaMeter to our super-repo config in `repos.json`:
+Assume that you have a project `examples-core-utils`, which contains core utilities.
+You would like to make changes its nightly version,
+but you want to use them right away (to verify that your changes work).
+The solution is to include `examples-core-utils` to our super-repo config in
+`repos.json` (use your own fork for `origin` below):
 
     {
-      "scalameter": {
-        "dir": "scalameter",
-        "origin": "git@github.com:scalameter/scalameter.git",
-        "mirrors": ["git@github.com:storm-enroute/scalameter.git"]
+      "examples-core-utils": {
+        "dir": "examples-core-utils",
+        "origin": "git@github.com:storm-enroute/examples-core-utils.git",
+        "mirrors": []
       }
     }
 
@@ -161,57 +163,67 @@ Run `reload` in the SBT shell to load the change, then `mecha-ls` again:
 
     > mecha-ls
     [info] Superproject repositories:
-    [info] [ ] scalameter
+    [info] [ ] examples-core-utils
     [success] Total time: 0 s, completed May 23, 2015 12:36:07 AM
 
 Now we're talking business.
 The super-project is listing one registered subproject.
 If you inspect the directory structure in the super-repo,
-you will see that `scalameter` is not really there.
+you will see that `examples-core-utils` is not really there.
 That is because you did not track it yet -- in general, there could be many projects
 registered, and you don't always want to check out all of them.
-So, let's track `scalameter` -- for this we use the `mecha-track` command
+So, let's track `examples-core-utils` -- for this we use the `mecha-track` command
 (auto-completion will list available projects):
 
-    > mecha-track scalameter
+    > mecha-track examples-core-utils
+    [info] Cloning 'examples-core-utils' into 'C:\cygwin\home\...'.
+    Cloning into '.'...
+    remote: Counting objects: 3, done.
+    remote: Compressing objects: 100% (2/2), done.
+    remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+    Receiving objects: 100% (3/3), done.
+    Checking connectivity... done.
+    [warn] Please reload the sbt shell.
+    [success] Total time: 4 s, completed May 23, 2015 12:39:29 AM
 
 Yeehaw!
-ScalaMeter is now checked out.
+The `examples-core-utils` project is now checked out.
 If we inspect the directory structure, we should be able to find it.
 Now `reload` the SBT shell one more time.
-Then, `mecha-ls` shows that `scalameter` is checked out (note the `*`):
+Then, `mecha-ls` shows that `examples-core-utils` is checked out (note the `*`):
 
     > mecha-ls
     [info] Superproject repositories:
-    [info] [*] scalameter
+    [info] [*] examples-core-utils
     [success] Total time: 0 s, completed May 23, 2015 12:40:52 AM
 
-To avoid accidentally committing `scalameter` to the super-repo,
-we will add `scalameter` to the `.gitignore` file.
+To avoid accidentally committing `examples-core-utils` to the super-repo,
+we will add `examples-core-utils` to the `.gitignore` file.
 
-The `reactive-collections` project uses ScalaMeter for its benchmarks.
-Let's add `reactive-collections` to `repos.json` too:
+The `examples-application` project uses `examples-core-utils` for its benchmarks.
+Let's add `examples-application` to `repos.json` too:
 
     ...
-    "reactive-collections": {
-      "dir": "reactive-collections",
-      "origin": "git@github.com:storm-enroute/reactive-collections.git",
-      "mirrors": ["git@github.com:reactive-collections/reactive-collections.git"]
+    "examples-application": {
+      "dir": "examples-application",
+      "origin": "git@github.com:storm-enroute/examples-application.git",
+      "mirrors": []
     },
     ...
 
 And `reload` again -- `mecha-ls` now gives:
 
     [info] Superproject repositories:
-    [info] [ ] reactive-collections
-    [info] [*] scalameter
+    [info] [ ] examples-application
+    [info] [*] examples-core-utils
 
-Do `mecha-track`, add `reactive-collections` to `.gitignore` and `reload` once more.
-
+Do `mecha-track`, add `examples-application` to `.gitignore` and `reload` once more,
+and now you're tracking both projects.
 Next, we will see how to pull from remote repositories.
 
 
 #### Pulling
+
 
 #### Branching
 
