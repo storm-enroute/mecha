@@ -71,6 +71,13 @@ We took three steps in creating this super-repo:
 1. Add the `mecha` plugin to your build.
 Create the `project/plugins.sbt` file and at the following:
 
+        resolvers ++= Seq(
+          "Sonatype OSS Snapshots" at
+            "https://oss.sonatype.org/content/repositories/snapshots",
+          "Sonatype OSS Releases" at
+            "https://oss.sonatype.org/content/repositories/releases"
+        )
+
         addSbtPlugin("com.storm-enroute" % "mecha" % "0.2")
 
     This will add the plugin to the super-repo SBT build.
