@@ -463,8 +463,11 @@ Now `reload` the project, run `package` and see the magic happen:
 
     > package
     [warn] Populating configuration file.
-    Enter upload password: abs
+    Enter upload password: mysecretpassword123
     [error] Created 'C:\cygwin\home\...\config.sbt'. Please reload!
+
+The generated file is called `config.sbt`.
+You can change the default name with the `MechaRepoPlugin.configFilePathKey` setting.
 
 
 #### Whaa? How does this configuration input-query DSL work?
@@ -499,8 +502,8 @@ The `configQueryKey` is a setting for values of the following type:
 
     Option[Query[Traversable[(String, String)]]]
 
-This reads -- an optional query that may return a traversable of string tuples.
-These string tuples are the key-value pairs in configuration objects.
+This reads: an optional query that may return a traversable of string tuples.
+These tuples are the key-value pairs that end up in the configuration objects.
 
 
 ### Inter-Project Dependencies
