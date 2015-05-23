@@ -528,7 +528,7 @@ from the `libraryDependencies` setting, if there is one.
 2. Next, create a `dependencies.json` file in the root directory
 of the `examples-application` project:
 
-        s{
+        {
           "examples-application": [
             {
               "project": "examples-core-utils",
