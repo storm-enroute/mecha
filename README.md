@@ -167,7 +167,7 @@ Run `reload` in the SBT shell to load the change, then `mecha-ls` again:
     [success] Total time: 0 s, completed May 23, 2015 12:36:07 AM
 
 Now we're talking business.
-The super-project is listing one registered subproject.
+The super-project is listing one registered *subproject*.
 If you inspect the directory structure in the super-repo,
 you will see that `examples-core-utils` is not really there.
 That is because you did not track it yet -- in general, there could be many projects
@@ -224,12 +224,98 @@ Next, we will see how to pull from remote repositories.
 
 #### Pulling
 
+Pulling latest changes for all the projects is super-easy -- just do:
 
-#### Branching
+    > mecha-pull
+    [info] Pull repo 'examples-core-utils' from origin...
+    Already up-to-date.
+    [info] Pull repo 'examples-application' from origin...
+    Already up-to-date.
 
-#### Merging
+And all the subprojects are updated.
+If some of the repos had pending changes, then the pull fails.
 
 #### Committing
+
+Let's make some changes.
+Add a line `tmp/` to the `.gitignore` files in both `examples-core-utils`
+and the `examples-application` projects.
+Now run `mecha-status`:
+
+    > mecha-status
+    [info] ------ status for repo 'examples-core-utils' ------
+    [info] On branch master
+    [info] Your branch is up-to-date with 'origin/master'.
+    [info] Changes not staged for commit:
+    [info]   (use "git add <file>..." to update what will be committed)
+    [info]   (use "git checkout -- <file>..." to discard changes in working directory)
+    [info]
+    [info]  modified:   .gitignore
+    [info]
+    [info] no changes added to commit (use "git add" and/or "git commit -a")
+    [info] ------ end of status for repo 'examples-core-utils' ------
+    [info] ------ status for repo 'examples-application' ------
+    [info] On branch master
+    [info] Your branch is up-to-date with 'origin/master'.
+    [info] Changes not staged for commit:
+    [info]   (use "git add <file>..." to update what will be committed)
+    [info]   (use "git checkout -- <file>..." to discard changes in working directory)
+    [info]
+    [info]  modified:   .gitignore
+    [info]
+    [info] no changes added to commit (use "git add" and/or "git commit -a")
+    [info] ------ end of status for repo 'examples-application' ------
+
+Looks like we've got some pending changes in both subprojects.
+We can also run 'mecha-diff' to precisely see the changes we made.
+If we are happy with the changes, we can run `mecha-commit`.
+This both stages the changes and commits them:
+
+    > mecha-commit
+    [info] --- diff for 'examples-core-utils' in 'examples-core-utils' ---
+    [info] diff --git a/.gitignore b/.gitignore
+    [info] index c58d83b..373b673 100644
+    [info] --- a/.gitignore
+    [info] +++ b/.gitignore
+    [info] @@ -15,3 +15,5 @@ project/plugins/project/
+    [info]  # Scala-IDE specific
+    [info]  .scala_dependencies
+    [info]  .worksheet
+    [info] +
+    [info] +tmp/
+    [info] --- end of diff for 'examples-core-utils' in 'examples-core-utils' ---
+    Commit message (empty aborts):
+
+We can enter a message and the changes will be commited.
+If you are not happy with the output of the diff, just enter an empty message.
+We can do the same for the other repo -- Mecha will iterate through all the repos with
+pending changes.
+Once we're done, running `mecha-status` should report no pending changes.
+
+
+#### Pushing
+
+Once we committed the changes, we need to push them to origin.
+For this, we run `mecha-push`:
+
+    > mecha-push
+    [info] Push 'examples-core-utils' to 'origin'...
+    [info] Push 'examples-application' to 'origin'...
+    [info] ------ examples-core-utils ------
+    [info] To git@github.com:storm-enroute/examples-core-utils.git
+    [info]    cd260d4..fb527d5  master -> master
+    [info] ------ examples-application ------
+    [info] To git@github.com:storm-enroute/examples-application.git
+    [info]    edd27e1..5f6f5c6  master -> master
+    [success] Total time: 2 s, completed May 23, 2015 2:04:10 AM
+
+And that's it!
+
+
+#### Branching and Merging
+
+
+
 
 #### Other Actions
 
