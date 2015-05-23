@@ -71,7 +71,7 @@ example projects.
 The example project we are interested in is called `mecha-super-repo`.
 It is used to aggregate other projects.
 
-We took three steps in creating this super-repo:
+We took four steps in creating this super-repo.
 
 1. Add the `mecha` plugin to your build.
 Create the `project/plugins.sbt` file and at the following:
@@ -94,7 +94,7 @@ Create the `project/plugins.sbt` file and at the following:
 
     This will make all Mecha stuff visible.
 
-3. Define a super-repo build as in the following example:
+3. Define a super-repo build in `project/Build.scala` as in the following example:
 
         object MechaSuperRepoBuild extends MechaSuperBuild {
           lazy val mechaSuperRepoSettings = Defaults.defaultSettings ++
@@ -365,8 +365,145 @@ You can additionally specify a list of mirrors in `repos.json` for specific proj
 If you do, you will be able to pull from and push to all the mirrors with
 `mecha-pull-mirror` and `mecha-push-mirror`.
 
+You can also switch between projects with the `project` command.
+Since the subprojects are just normal SBT projects, you can work on them directly.
+Sometimes you need to do this to more easily invoked project-specific commands.
+
 
 ### Project Configuration API
+
+In some projects, it is useful to have configuration files that the
+users need to fill out before being able to build the project.
+Examples of values in this configuration file include sensitive information such
+as passwords, local paths or other dev-specific info that you do not want in source
+control.
+The common convention is to provide a template configuration that the devs must fill.
+Sadly, the configuration template and the actual configuration can easily get
+out-of-sync and the devs must remember to fill them out correctly each time.
+
+Mecha has an `Input.Query` DSL that you can use to define these configuration files in
+the subprojects.
+This DSL automatically creates a configuration file generator that queries the user to
+enter values for the config file (if the config file does not exist).
+Let's say that `examples-application` needs to have a different `target` location
+and a version `version`.
+We first need to convert the `examples-application` build into a Mecha repo build.
+
+1. Add Mecha to `project/plugins.sbt` in `examples-application`:
+
+        resolvers ++= Seq(
+          "Sonatype OSS Snapshots" at
+            "https://oss.sonatype.org/content/repositories/snapshots",
+          "Sonatype OSS Releases" at
+            "https://oss.sonatype.org/content/repositories/releases"
+        )
+        
+        addSbtPlugin("com.storm-enroute" % "mecha" % "0.2")
+
+    If necessary, replace `0.2` with the latest Mecha version.
+
+2. Add the following into the `project/Build.scala`:
+
+        import org.stormenroute.mecha._
+        import sbt._
+        import sbt.Keys._
+        
+        object ExamplesApplicationBuild extends MechaRepoBuild {
+          lazy val examplesApplicationSettings = Defaults.defaultSettings ++
+            MechaRepoPlugin.defaultSettings ++ Seq(
+            name := "examples-application",
+            scalaVersion := "2.11.4",
+            version := "0.1",
+            organization := "com.storm-enroute",
+            libraryDependencies ++= Seq()
+          )
+        
+          def repoName = "examples-application"
+
+          lazy val examplesApplication: Project = Project(
+            "examples-application",
+            file("."),
+            settings = examplesApplicationSettings
+          )
+        }
+
+    Here, the crucial part is the `repoName` -- use the same name as in the `repos.json`
+    file from the super-repo.
+
+3. Run `reload` in the SBT shell and you've got a Mecha repo build.
+
+The `examples-application` can now do various powerful stuff.
+Let's get back to our config files.
+We add the following value to `project/Build.scala` in `examples-application`:
+
+    import Input._
+    val configQuery = {
+      val target =
+        const("file(\"/custom-target/\")")
+          .map(("target", _))
+      val version =
+        stringQuery("Enter version: ")
+          .map(v => "\"" + v + "\"")
+          .map(("version", _))
+      traverseFull(List(target, version))
+    }
+
+The above is a template for generating a configuration.
+The `const` value will default its argument.
+For each `stringQuery` value, the user will have to enter the value when SBT boots.
+You can add more `val`s if you need more configuration values.
+
+Importantly, add the following setting to `examplesApplicationSettings`:
+
+    ...
+    MechaRepoPlugin.configQueryKey := Some(configQuery),
+    ...
+
+Now `reload` the project, run `package` and see the magic happen:
+
+    > package
+    [warn] Populating configuration file.
+    Enter upload password: abs
+    [error] Created 'C:\cygwin\home\...\config.sbt'. Please reload!
+
+
+#### Whaa? How does this configuration input-query DSL work?
+
+There is no need to understand this DSL to use it.
+However, if you really want to know, read this section.
+
+The `Input.Query` DSL relies heavily functional combinators to create queries and
+generation values. It is based on the following type:
+
+    type Query[T] = () => Option[T]
+
+This reads "A query of type `T` is code that maybe produces a value of type `T`".
+When we call `const(x)`, we produce a function that always returns `Some(x)`:
+
+    def const[T](v: =>T): Query[T] = () => Some(v)
+
+The `stringQuery` asks the user to produce a query -- it might return `None` if the
+user enters an empty string.
+Both `const` and `stringQuery` are basic combinators.
+
+Complex combinators transform existing `Query` objects into more complex ones.
+For example, the `map` that we used above transforms the value in the `Option` object
+that `Query` could return if the `Option` is not `None`.
+We used it to wrap the user's string into quotes.
+
+Another example is `repeat` -- given a `Query` it returns another `Query` that repeats
+the original query until the user enters an empty string.
+Other combinators include `default`, `map`, `traverse`, `traverseFull`, `pair`, ...
+
+The `configQueryKey` is a setting for values of the following type:
+
+    Option[Query[Traversable[(String, String)]]]
+
+This reads -- an optional query that may return a traversable of string tuples.
+These string tuples are the key-value pairs in configuration objects.
+
+
+### Inter-Project Dependencies
 
 
 ### Edit-Refresh Task
