@@ -18,6 +18,8 @@ Ask yourself:
 
 - Are you looking for an easy way to configure the project when it's first checked out?
 
+- Or you want to quickly deploy your project over SSH to a remote server?
+
 If the answer is yes to any of the above, you're at the right place.
 Mecha is an SBT plugin that aggregates all the SBT projects that you specify into one
 big project, which you can then compile as if they were one project.
@@ -424,11 +426,13 @@ We first need to convert the `examples-application` build into a Mecha repo buil
             "examples-application",
             file("."),
             settings = examplesApplicationSettings
-          )
+          ) dependsOnSuperRepo
         }
 
-    Here, the crucial part is the `repoName` -- use the same name as in the `repos.json`
-    file from the super-repo.
+    Here, the crucial part is the `dependsOnSuperRepo` --
+    **don't forget to add this or the dependencies won't be picked up!**
+    For `repoName`, use the same name as in the `repos.json` file from the super-repo.
+
 
 3. Run `reload` in the SBT shell and you've got a Mecha repo build.
 
@@ -507,6 +511,61 @@ These tuples are the key-value pairs that end up in the configuration objects.
 
 
 ### Inter-Project Dependencies
+
+Now the main reason why we have Mecha -- projects can depend on each other,
+and sometimes you don't want to wait until the snapshot lands on Maven
+to get the updates from one project in another project.
+
+In our example, `examples-application` project will depend on the `examples-core-utils`
+project.
+To express this dependency, we need to:
+
+1. First remove the dependency on the other project
+from the `libraryDependencies` setting, if there is one.
+
+2. Next, create a `dependencies.json` file in the root directory
+of the `examples-application` project:
+
+    {
+      "examples-application": [
+        {
+          "project": "examples-core-utils",
+          "artifact": ["com.storm-enroute", "examples-core-utils", "0.1"]
+        }
+      ]
+    }
+
+Here, for every SBT project inside the `examples-application` subproject,
+we specify a list if dependent projects.
+In case the dependent projects are not checked out, we fall back to their published
+artifacts.
+
+We can also specify that the dependency is only on a specific project configuration:
+
+    "artifact": ["com.storm-enroute", "examples-core-utils", "0.1", "test"]
+
+Now we can e.g. call methods from `examples-core-utils`
+directly from `examples-application`.
+Assume that we have the following in `examples-core-utils`:
+
+    package com.stormenroute
+
+    object Util {
+      def version = println("core-utils v1.0")
+    }
+
+We add the file `src/main/scala/com/stormenroute/Main.scala`
+to `examples-application`:
+
+    package com.stormenroute
+
+    object Main {
+      def main(args: Array[String]) {
+        println(Util.version)
+      }
+    }
+
+And hit `compile`.
 
 
 ### Edit-Refresh Task
