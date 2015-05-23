@@ -14,9 +14,11 @@ Ask yourself:
 - Did you ever want to simultaneously work on different Git code repositories as if they
   were one big project, but commit changes to them separately?
 
-- Is automated nightly documentation publishing something you crave for?
+- Are automated nightlies and documentation publishing something you crave for?
 
-If so, you're at the right place.
+- Are you looking for an easy way to configure the project when it's first checked out?
+
+If the answer is yes to any of the above, you're at the right place.
 Mecha is an SBT plugin that aggregates all the SBT projects that you specify into one
 big project, which you can then compile as if they were one project.
 You can branch/merge/commit changes in all the repositories simultaneously,
@@ -149,7 +151,7 @@ Assume that you have a project `examples-core-utils`, which contains core utilit
 You would like to make changes its nightly version,
 but you want to use them right away (to verify that your changes work).
 The solution is to include `examples-core-utils` to our super-repo config in
-`repos.json` (use your own fork for `origin` below):
+`repos.json` (use your own fork for `origin` below, or create a fresh repo):
 
     {
       "examples-core-utils": {
@@ -314,10 +316,54 @@ And that's it!
 
 #### Branching and Merging
 
+Let's say that we want to work on feature `gitignore`.
+We would like to have a separate branch for that called `topic/gitignore`.
+To simultaneously create a new branch in all the repositories,
+run `mecha-new-branch`:
 
+    > mecha-new-branch topic/gitignore
+    [info] All repositories are at branch: master
+    Branch in all repos? [y/n] y
+    Switched to a new branch 'topic/gitignore'
+    Switched to a new branch 'topic/gitignore'
+    [success] Total time: 11 s, completed May 23, 2015 2:09:51 AM
+
+Mecha will check if all the repositories are at the same branch, and ask you to confirm.
+If you do, the new branches are created.
+Let's check with `mecha-branch`:
+
+    > mecha-branch
+    > mecha-branch
+    [info] Repo 'examples-core-utils': topic/gitignore
+    [info] Repo 'examples-application': topic/gitignore
+
+To switch all projects back to master, just run `mecha-checkout`:
+
+    > mecha-checkout
+    Existing branch name: master
+    Switched to branch 'master'
+    Your branch is up-to-date with 'origin/master'.
+    Switched to branch 'master'
+    Your branch is up-to-date with 'origin/master'.
+
+To merge the changes from `topic/gitignore` back to `master`, run `mecha-merge`:
+
+    > mecha-merge
+    [info] All repositories are at branch: master
+    Merge in all repos? [y/n]y
+    Existing branch name (empty aborts): topic/gitignore
+    Already up-to-date.
+    Already up-to-date.
+    [success] Total time: 9 s, completed May 23, 2015 2:13:43 AM
+
+You can alternatively specify the branch name directly in the command line.
 
 
 #### Other Actions
+
+You can additionally specify a list of mirrors in `repos.json` for specific projects.
+If you do, you will be able to pull from and push to all the mirrors with
+`mecha-pull-mirror` and `mecha-push-mirror`.
 
 
 ### Project Configuration API
