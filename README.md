@@ -372,7 +372,7 @@ Since the subprojects are just normal SBT projects, you can work on them directl
 Sometimes you need to do this to more easily invoked project-specific commands.
 
 
-### Project Configuration API
+### Project Configuration and the Input Query DSL
 
 In some projects, it is useful to have configuration files that the
 users need to fill out before being able to build the project.
@@ -417,7 +417,8 @@ We first need to convert the `examples-application` build into a Mecha repo buil
             scalaVersion := "2.11.4",
             version := "0.1",
             organization := "com.storm-enroute",
-            libraryDependencies ++= Seq()
+            libraryDependencies ++=
+              superRepoDependencies("examples-application"),
           )
         
           def repoName = "examples-application"
@@ -431,6 +432,7 @@ We first need to convert the `examples-application` build into a Mecha repo buil
 
     Here, the crucial part is the `dependsOnSuperRepo` --
     **don't forget to add this or the dependencies won't be picked up!**
+    The other crucial part is `libraryDependencies ++= superRepoDependencies`.
     For `repoName`, use the same name as in the `repos.json` file from the super-repo.
 
 
@@ -570,15 +572,93 @@ And hit `compile`.
 
 ### Edit-Refresh Task
 
+Mecha comes with a special `mechaEditRefresh` task that supports fast edit-refresh
+cycles across projects.
+Essentially, calling this task in the super-repo depends on completing that task in all
+the subprojects.
+For specific Mecha subprojects, make sure that this task is overridden, for example:
 
-### Nightly Task
+    mechaEditRefreshKey <<= mechaEditRefreshKey.dependsOn(compile in Compile)
+
+Then, in SBT shell do:
+
+    > ~mecha-edit-refresh
+
+And code the night away.
 
 
 ### Automated Docs Publishing
 
+Mecha supports automated publishing of your project ScalaDoc to a target Git repo.
+To enable this, you need to specify these settings:
+
+    ...
+    mechaDocsRepoKey := "url of the git repo for hosting the docs",
+    mechaDocsBranchKey := "branch in the remote git repo",
+    mechaDocsPathKey := "the path in the repo where the docs should be put",
+    ...
+
+Running the `mecha-publish-docs` command from the subproject will:
+
+1. Build the docs.
+2. Check out the specified branch of the Git url into a temporary directory.
+3. Copy the docs into the path specified in `mechaDocsPathKey`, suffixed with version.
+4. **Amend the last commit and force-push back to the remote Git repo.**
+
+The fun part with this command is that if you use GitHub and specify a `gh-pages`
+branch, your docs will be automatically hosted for the whole world to see...
+So, you get ScalaDoc hosting for free.
+
 
 ### Automated Benchmark Publishing
+
+Automated benchmark publishing is very similar to docs publishing,
+and is triggered with `mecha-publish-benches` in the subproject.
+You will need to specify these settings:
+
+    ...
+    mechaBenchRepoKey := "url of the git repo",
+    mechaBenchBranchKey := "branch in the git repo",
+    mechaBenchPathKey := "subdirectory in the gir repo",
+    mechaBenchSrcPathKey := (baseDirectory.value / "target/benchmarks").toString,
+    ...
+
+See descriptions of these tasks for more info.
+
+
+### Nightly Task
+
+Mecha has another special task called `mechaNightly`.
+By default, this task depends on packaging,
+testing, publishing the project, publishing the docs and publishing the benchmarks.
+If you want to extend this, add more dependencies for this task *inside the subproject*.
+
+Calling `mecha-nightly` in the super-repo depends on all the Mecha subprojects.
 
 
 ### Automated Remote Deployment
 
+In case you're working on a project that needs to be frequently deployed
+to a different host during development,
+Mecha exposes the `mechaSshDeploy` command to speed this up.
+You will need to specify the following settings:
+
+    ...
+    remoteSshHost := None,
+    remoteSshUser := "admin",
+    remoteSshPass := None,
+    remoteDeployPathKey := "~",
+    remoteDeployCmdKey := None,
+    ...
+
+Calling `mecha-ssh-deploy` from within the subproject will:
+
+1. Connect to the remote host, using the specified credentials.
+2. Pull the project into the specified path.
+3. Optionally run the bash command from `remoteDeployCmdKey` in the project root.
+
+Note: commit your changes before deploying them at the remote host -- the project is
+pulled at the remote location, but there is no local automatic commit/push.
+
+Some of these settings, like `remoteSshPass` are ideal candidates for the Input Query
+DSL and the automated project configuration.
