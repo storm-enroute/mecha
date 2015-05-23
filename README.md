@@ -528,14 +528,14 @@ from the `libraryDependencies` setting, if there is one.
 2. Next, create a `dependencies.json` file in the root directory
 of the `examples-application` project:
 
-    {
-      "examples-application": [
-        {
-          "project": "examples-core-utils",
-          "artifact": ["com.storm-enroute", "examples-core-utils", "0.1"]
+        s{
+          "examples-application": [
+            {
+              "project": "examples-core-utils",
+              "artifact": ["com.storm-enroute", "examples-core-utils", "0.1"]
+            }
+          ]
         }
-      ]
-    }
 
 Here, for every SBT project inside the `examples-application` subproject,
 we specify a list if dependent projects.
