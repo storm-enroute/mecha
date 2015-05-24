@@ -469,7 +469,7 @@ Now `reload` the project, run `package` and see the magic happen:
 
     > package
     [warn] Populating configuration file.
-    Enter upload password: mysecretpassword123
+    Enter version: 1.7.4
     [error] Created 'C:\cygwin\home\...\config.sbt'. Please reload!
 
 The generated file is called `config.sbt`.
