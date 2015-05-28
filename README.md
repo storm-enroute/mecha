@@ -518,6 +518,15 @@ Now the main reason why we have Mecha -- projects can depend on each other,
 and sometimes you don't want to wait until the snapshot lands on Maven
 to get the updates from one project in another project.
 
+In these cases, you define a dependency file inside your subproject.
+The dependency file in project A can, for example, specify that project A
+depends on some other project B.
+If you run SBT from the superproject root directory,
+Mecha will try to create a source code dependency on project B for project A.
+If the project B is not tracked, Mecha will create a dependency on the Maven artifact instead.
+Similarly, if you checkout project A without the superproject,
+Mecha will create a regular Maven dependency.
+
 In our example, `examples-application` project will depend on the `examples-core-utils`
 project.
 To express this dependency, we need to:
