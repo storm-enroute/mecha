@@ -158,6 +158,10 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
+  def dirtyRepos(repos: Map[String, Repo]): Map[String,Repo] = {
+    repos.filter(p => Git.isDirty(p._2.dir))
+  }
+
   def ifBranchInAll(repos: Map[String, Repo], log: Logger, name: String)(action: =>Unit): Unit = {
     val nonExisting = repos.filterNot(p => Git.branchExists(p._2.dir, name))
     if (nonExisting.nonEmpty) {
@@ -304,14 +308,17 @@ object MechaSuperPlugin extends Plugin {
   val pullMirrorTask = pullMirrorKey := {
     val log = streams.value.log
     val repos = trackedReposKey.value
-    ifClean(repos, log) {
+    val dirty = dirtyRepos(repos)
+    if (dirty.isEmpty) {
       log.info("Pulling from mirrors...")
       for ((name, repo) <- repos; mirror <- repo.mirrors) {
         log.info(s"Pull '${repo.dir}' from '$mirror'...")
         if (!Git.pull(repo.dir, mirror))
           log.error(s"Pull failed: ${repo.dir}")
       }
-    } {}
+    } else {
+      log.error(s"Dirty repos: ${dirty.mkString(", ")}")
+    }
   }
 
   val pushMirrorKey = InputKey[Unit](
@@ -323,7 +330,7 @@ object MechaSuperPlugin extends Plugin {
     val flags = spaceDelimited("<push flags>").parsed
     val log = streams.value.log
     val repos = trackedReposKey.value
-    ifClean(repos, log) {
+    if (dirty.isEmpty) {
       log.info("Pushing to mirrors...")
       for ((name, repo) <- repos; mirror <- repo.mirrors) {
         log.info(s"Push '${repo.dir}' to '$mirror'...")
@@ -331,7 +338,9 @@ object MechaSuperPlugin extends Plugin {
         if (!Git.push(repo.dir, mirror, branch, flags.mkString(" ")))
           log.error(s"Push failed: ${repo.dir}")
       }
-    } {}
+    } else {
+      log.error(s"Dirty repos: ${dirty.mkString(", ")}")
+    }
   }
 
   val commitKey = TaskKey[Unit](
