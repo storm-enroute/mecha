@@ -11,6 +11,8 @@ Ask yourself:
 - Is publishing a snapshots artifact from one project to compile another project killing
   your productivity?
 
+- You feel your projects are bitrotting because they don't live in the same repository?
+
 - Did you ever want to simultaneously work on different Git code repositories as if they
   were one big project, but commit changes to them separately?
 
