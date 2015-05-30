@@ -133,11 +133,13 @@ trait MechaSuperBuild extends Build {
  */
 object MechaSuperPlugin extends Plugin {
 
-  implicit def logger2MechaLog(log: Logger) = new MechaLog {
+  class MechaLoggerLog(log: Logger) {
     def info(s: String) = log.info(s)
     def warn(s: String) = log.warn(s)
     def error(s: String) = log.error(s)
   }
+
+  implicit def logger2MechaLog(log: Logger) = new MechaLoggerLog(log)
 
   implicit val reader = new MechaReader {
     def readLine(prompt: String) = SimpleReader.readLine(prompt)
@@ -303,11 +305,11 @@ object MechaSuperPlugin extends Plugin {
     val log = streams.value.log
     val repos = trackedReposKey.value
     ifClean(repos, log) {
-      println("Pulling from mirrors...")
+      log.info("Pulling from mirrors...")
       for ((name, repo) <- repos; mirror <- repo.mirrors) {
-        println(s"Pull '${repo.dir}' from '$mirror'...")
+        log.info(s"Pull '${repo.dir}' from '$mirror'...")
         if (!Git.pull(repo.dir, mirror))
-          println(s"Pull failed: ${repo.dir}")
+          log.error(s"Pull failed: ${repo.dir}")
       }
     } {}
   }
@@ -322,12 +324,12 @@ object MechaSuperPlugin extends Plugin {
     val log = streams.value.log
     val repos = trackedReposKey.value
     ifClean(repos, log) {
-      println("Pushing to mirrors...")
+      log.info("Pushing to mirrors...")
       for ((name, repo) <- repos; mirror <- repo.mirrors) {
-        println(s"Push '${repo.dir}' to '$mirror'...")
+        log.info(s"Push '${repo.dir}' to '$mirror'...")
         val branch = Git.branchName(repo.dir)
         if (!Git.push(repo.dir, mirror, branch, flags.mkString(" ")))
-          println(s"Push failed: ${repo.dir}")
+          log.error(s"Push failed: ${repo.dir}")
       }
     } {}
   }
