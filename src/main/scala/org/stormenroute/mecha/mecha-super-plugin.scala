@@ -133,13 +133,13 @@ trait MechaSuperBuild extends Build {
  */
 object MechaSuperPlugin extends Plugin {
 
-  class MechaLoggerLog(log: Logger) {
+  class LoggerMechaLog(log: Logger) extends MechaLog {
     def info(s: String) = log.info(s)
     def warn(s: String) = log.warn(s)
     def error(s: String) = log.error(s)
   }
 
-  implicit def logger2MechaLog(log: Logger) = new MechaLoggerLog(log)
+  implicit def logger2MechaLog(log: Logger) = new LoggerMechaLog(log)
 
   implicit val reader = new MechaReader {
     def readLine(prompt: String) = SimpleReader.readLine(prompt)
