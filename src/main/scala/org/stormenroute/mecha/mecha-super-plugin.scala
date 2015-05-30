@@ -330,6 +330,7 @@ object MechaSuperPlugin extends Plugin {
     val flags = spaceDelimited("<push flags>").parsed
     val log = streams.value.log
     val repos = trackedReposKey.value
+    val dirty = dirtyRepos(repos)
     if (dirty.isEmpty) {
       log.info("Pushing to mirrors...")
       for ((name, repo) <- repos; mirror <- repo.mirrors) {
