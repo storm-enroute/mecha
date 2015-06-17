@@ -1,5 +1,5 @@
 
-![ ](/docs/mecha-logo-256-soft.png)
+![...::: Mecha :::...](/docs/mecha-logo-256-soft.png)
 
 ### Mecha -- SBT Plugin That Automates Development Workflow
 
