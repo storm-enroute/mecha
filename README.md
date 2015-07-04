@@ -373,6 +373,13 @@ You can also switch between projects with the `project` command.
 Since the subprojects are just normal SBT projects, you can work on them directly.
 Sometimes you need to do this to more easily invoked project-specific commands.
 
+To switch between projects, you will need to specify their full path,
+since the subprojects are defined as sbt `RootProject`s.
+
+    project {file:/C:/cygwin/home/scala-fanboy/workspaces/scala/examples/mecha-super-repo/examples-core-utils}
+
+Luckily, auto-complete's here to the rescue!
+
 
 ### Project Configuration and the Input Query DSL
 
