@@ -53,9 +53,10 @@ package mecha {
         log.info(Git.diff(repo.dir))
         log.info(s"--- end of diff for '$name' in '${repo.dir}' ---")
         reader.readLine("Commit message (empty aborts): ") match {
-          case Some(msg) =>
+          case Some(msg) if msg.size > 0 =>
             if (!Git.commit(repo.dir, msg)) log.error("Could not commit.")
           case None =>
+          case _ =>
         }
       }
     }
