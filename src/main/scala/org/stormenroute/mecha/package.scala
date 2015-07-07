@@ -55,8 +55,7 @@ package mecha {
         reader.readLine("Commit message (empty aborts): ") match {
           case Some(msg) if msg.size > 0 =>
             if (!Git.commit(repo.dir, msg)) log.error("Could not commit.")
-          case None =>
-          case _ =>
+          case _ => log.info("Empty message -- commit aborted.")
         }
       }
     }
