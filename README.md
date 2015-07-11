@@ -1,5 +1,5 @@
 
-<img src="/docs/mecha-logo-256-soft.png" alt=" "/>
+![ ](/docs/mecha-logo-256-soft.png)
 
 ### Mecha -- SBT Plugin That Automates Development Workflow
 
