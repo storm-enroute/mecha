@@ -112,6 +112,7 @@ package mecha {
         flags: String = "", logger: ProcessLogger = PrintlnLogger): Boolean = {
       val dir = new File(path)
       val cmd = Seq("git", "push", flags, location, branch).filter(_ != "")
+      println(cmd)
       Process(cmd, dir).!<(logger) == 0
     }
     def addAll(path: String): Boolean = {
