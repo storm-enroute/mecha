@@ -105,12 +105,14 @@ package mecha {
     }
     def pull(path: String, location: String, branch: String = ""): Boolean = {
       val dir = new File(path)
-      Process(Seq("git", "pull", location, branch), dir).! == 0
+      val cmd = Seq("git", "pull", location, branch).filter(_ != "")
+      Process(cmd, dir).! == 0
     }
     def push(path: String, location: String, branch: String = "",
         flags: String = "", logger: ProcessLogger = PrintlnLogger): Boolean = {
       val dir = new File(path)
-      Process(Seq("git", "push", flags, location, branch), dir).!<(logger) == 0
+      val cmd = Seq("git", "push", flags, location, branch).filter(_ != "")
+      Process(cmd, dir).!<(logger) == 0
     }
     def addAll(path: String): Boolean = {
       val dir = new File(path)
@@ -145,7 +147,8 @@ package mecha {
     }
     def status(path: String, flags: String = ""): String = {
       val dir = new File(path)
-      Process(Seq("git", "-c", "color.status=always", "status", flags), dir).!!
+      val cmd = Seq("git", "-c", "color.status=always", "status", flags).filter(_ != "")
+      Process(cmd, dir).!!
     }
     def merge(path: String, branch: String): Boolean = {
       val dir = new File(path)
