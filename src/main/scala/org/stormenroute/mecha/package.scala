@@ -86,67 +86,70 @@ package mecha {
   object Git {
     def clone(url: String, path: String): Boolean = {
       val dir = new File(path)
-      Process(s"git clone --progress $url .", dir).! == 0
+      Process(Seq("git", "clone", "--progress", url, "."), dir).! == 0
     }
     def isDirty(path: String): Boolean = {
       isUncommitted(path) || isUnstaged(path)
     }
     def isUncommitted(path: String): Boolean = {
       val dir = new File(path)
-      Process(s"git diff-index --quiet --cached HEAD", dir).! != 0
+      Process(Seq("git", "diff-index", "--quiet", "--cached", "HEAD"), dir).! != 0
     }
     def isUnstaged(path: String): Boolean = {
       val dir = new File(path)
-      Process(s"git diff-files --quiet", dir).! != 0
+      Process(Seq("git", "diff-files", "--quiet"), dir).! != 0
     }
     def remoteUrl(path: String, remoteName: String): String = {
       val dir = new File(path)
-      Process(s"git config --get remote.$remoteName.url", dir).!!.trim
+      Process(Seq("git", "config", "--get", s"remote.$remoteName.url"), dir).!!.trim
     }
     def pull(path: String, location: String, branch: String = ""): Boolean = {
       val dir = new File(path)
-      Process(s"git pull $location $branch", dir).! == 0
+      Process(Seq("git", "pull", location, branch), dir).! == 0
     }
     def push(path: String, location: String, branch: String = "",
         flags: String = "", logger: ProcessLogger = PrintlnLogger): Boolean = {
       val dir = new File(path)
-      Process(s"git push $flags $location $branch", dir).!<(logger) == 0
+      Process(Seq("git", "push", flags, location, branch), dir).!<(logger) == 0
     }
     def addAll(path: String): Boolean = {
       val dir = new File(path)
-      Process(s"git add -A", dir).! == 0
+      Process(Seq("git", "add", "-A"), dir).! == 0
     }
     def diff(path: String): String = {
       val dir = new File(path)
-      Process(s"git diff --color HEAD", dir).!!
+      Process(Seq("git", "diff", "--color", "HEAD"), dir).!!
     }
     def commit(path: String, msg: String): Boolean = {
       val dir = new File(path)
-      Process(s"git commit -m '${msg}'", dir).! == 0
+      Process(Seq("git", "commit", "-m", msg), dir).! == 0
     }
     def branchExists(path: String, name: String): Boolean = {
       val dir = new File(path)
-      Process(s"git show-ref --verify --quiet refs/heads/$name", dir).! == 0
+      Process(
+        Seq("git", "show-ref", "--verify", "--quiet", s"refs/heads/$name"),
+        dir
+      ).! == 0
     }
     def branchName(path: String): String = {
       val dir = new File(path)
-      Process(s"git rev-parse --abbrev-ref HEAD", dir).!!
+      Process(Seq("git", "rev-parse", "--abbrev-ref", "HEAD"), dir).!!
     }
     def checkout(path: String, name: String): Boolean = {
       val dir = new File(path)
-      Process(s"git checkout $name", dir).! == 0
+      Process(Seq("git", "checkout", name), dir).! == 0
     }
     def newBranch(path: String, name: String): Boolean = {
       val dir = new File(path)
-      Process(s"git checkout -b $name", dir).! == 0
+      Process(Seq("git", "checkout", "-b", name), dir).! == 0
     }
     def status(path: String, flags: String = ""): String = {
       val dir = new File(path)
-      Process(s"git -c color.status=always status $flags", dir).!!
+      Process(Seq("git", "-c", "color.status=always", "status", flags), dir).!!
     }
     def merge(path: String, branch: String): Boolean = {
       val dir = new File(path)
-      Process(s"git merge $branch", dir).! == 0
+      Process(Seq("git", "merge", branch), dir).! == 0
     }
   }
 
