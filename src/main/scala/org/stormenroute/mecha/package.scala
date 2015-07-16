@@ -136,7 +136,7 @@ package mecha {
     }
     def branchName(path: String): String = {
       val dir = new File(path)
-      Process(Seq("git", "rev-parse", "--abbrev-ref", "HEAD"), dir).!!
+      Process(Seq("git", "rev-parse", "--abbrev-ref", "HEAD"), dir).!!.trim
     }
     def checkout(path: String, name: String): Boolean = {
       val dir = new File(path)
