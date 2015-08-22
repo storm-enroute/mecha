@@ -32,7 +32,7 @@ trait MechaRepoBuild extends Build {
 
   /** Location of the repository configuration in the superrepo.
    */
-  def repositoriesPath: String = "../repos.json"
+  def repositoriesPath: String = "../repos.conf"
 
   final def repositoriesFile: File = new File(buildBase, repositoriesPath)
 

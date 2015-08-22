@@ -568,8 +568,9 @@ of the `examples-application` project:
         }
 
     Alternatively, you can use JSON syntax, and a `dependencies.json` file.
-    Simply override the `dependenciesPath` field in the project definition,
-    and add the following:
+    Simply override both `dependenciesPath` and `repositoriesPath`
+    fields in the project definition,
+    and add the following to the `dependencies.json` file:
 
         {
           "examples-application": [
