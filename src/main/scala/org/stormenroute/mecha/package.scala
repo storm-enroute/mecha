@@ -2,18 +2,17 @@ package org.stormenroute
 
 
 
+import com.typesafe.config._
+import java.io._
+import org.apache.commons.io._
 import sbt.{Future => _, Process => _, ProcessLogger => _, _}
 import sbt.Keys._
-import java.io._
 import scala.annotation._
 import scala.collection._
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.sys.process._
-import org.apache.commons.io._
-import spray.json._
-import spray.json.DefaultJsonProtocol._
 
 
 
@@ -248,25 +247,16 @@ package object mecha {
 
     /** Parse repository configuration from Json. */
     def reposFromJson(file: File): Map[String, Repo] = {
-      import scala.annotation.unchecked
+      import scala.collection.convert.decorateAsScala._
       val repomap = mutable.Map[String, Repo]()
-      val content = FileUtils.readFileToString(file, null: String)
-      val tree = content.parseJson
-      (tree: @unchecked) match {
-        case JsObject(projects) =>
-          for ((name, JsObject(conf)) <- projects) {
-            def str(v: JsValue) = (v: @unchecked) match {
-              case JsString(s) => s
-            }
-            def strings(v: JsValue) = (v: @unchecked) match {
-              case JsArray(ss) => for (JsString(s) <- ss) yield s
-            }
-            repomap(name) = Repo(
-              dir = str(conf("dir")),
-              origin = str(conf("origin")),
-              mirrors = strings(conf("mirrors"))
-            )
-          }
+      val config = ConfigFactory.parseFile(file)
+      for ((name, _) <- config.root.asScala) {
+        val repo = config.getConfig(name)
+        repomap(name) = Repo(
+          dir = repo.getString("dir"),
+          origin = repo.getString("origin"),
+          mirrors = repo.getStringList("mirrors").asScala
+        )
       }
       repomap
     }

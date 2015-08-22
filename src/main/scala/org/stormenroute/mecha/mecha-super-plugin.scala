@@ -2,15 +2,15 @@ package org.stormenroute.mecha
 
 
 
+import java.io.File
+import org.apache.commons.io._
 import sbt.{Future => _, _}
 import sbt.Keys._
 import sbt.complete.DefaultParsers._
-import java.io.File
 import scala.collection._
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import org.apache.commons.io._
 
 
 
@@ -24,24 +24,37 @@ trait MechaSuperBuild extends Build {
   
   /** File that describes all the repositories in this superrepository.
    *
-   *  Format:
+   *  Format if extension is `json`:
    *  
    *      {
    *        "super-project": {
    *          "dir": ".",
    *          "origin": "<repo-url-at-github>",
-   *          "mirrors": ["<repo-url-at-bitbucket>"],
+   *          "mirrors": ["<repo-url-at-bitbucket>"]
    *        },
    *        "sub-project": {
    *          "dir": "mecha",
    *          "origin": "git@github.com:storm-enroute/mecha.git",
-   *          "mirrors": [],
+   *          "mirrors": []
    *        }
    *      }
    *
+   *  Format if extension is `conf`:
+   *
+   *      super-project {
+   *        dir = "."
+   *        origin = "<repo-url-at-github"
+   *        mirrors = ["<repo-url-at-bitbucket"]
+   *      }
+   *      sub-project {
+   *        dir = "mecha"
+   *        origin = "git@github.com:storm-enroute/mecha.git"
+   *        mirrors = []
+   *      }
+   *  
    *  Override this method to specify a different path to this file.
    */
-  def repositoriesFile: File = file("repos.json")
+  def repositoriesFile: File = file("repos.conf")
   
   /** Holds the configuration of repositories in this superrepo.
    */

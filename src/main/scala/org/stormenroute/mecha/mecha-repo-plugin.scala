@@ -3,6 +3,7 @@ package org.stormenroute.mecha
 
 
 import com.decodified.scalassh._
+import com.typesafe.config._
 import java.io.File
 import org.apache.commons.io._
 import sbt._
@@ -12,8 +13,6 @@ import scala.collection._
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import spray.json._
-import spray.json.DefaultJsonProtocol._
 
 
 
@@ -87,7 +86,7 @@ trait MechaRepoBuild extends Build {
    *
    *      libraryDependencies ++= superRepoDependencies("myProjectName")
    */
-  def dependenciesPath: String = "dependencies.json"
+  def dependenciesPath: String = "dependencies.conf"
 
   final def dependenciesFile: File = new File(buildBase, dependenciesPath)
 
@@ -463,28 +462,22 @@ object MechaRepoPlugin extends Plugin {
 
   def dependenciesFromJson(file: File): Map[String, Seq[Dependency]] = {
     import scala.annotation.unchecked
+    import scala.collection.convert.decorateAsScala._
     val depmap = mutable.Map[String, Seq[Dependency]]()
-    val content = FileUtils.readFileToString(file, null: String)
-    val tree = content.parseJson
-    def str(v: JsValue) = (v: @unchecked) match {
-      case JsString(s) => s
-    }
-    def artifact(v: JsValue) = (v: @unchecked) match {
-      case JsNull =>
-        None
-      case JsArray(Seq(JsString(org), JsString(proj), JsString(vers))) =>
+    def artifact(v: Seq[String]) = (v: @unchecked) match {
+      case Seq(org, proj, vers) =>
         Some(Artifact(org, proj, vers, None))
-      case JsArray(Seq(JsString(org), JsString(proj), JsString(vers), JsString(c))) =>
+      case Seq(org, proj, vers, c) =>
         Some(Artifact(org, proj, vers, Some(c)))
     }
-    (tree: @unchecked) match {
-      case JsObject(projects) =>
-        for ((projectName, JsArray(depelems)) <- projects) {
-          val deps = for (JsObject(entries) <- depelems) yield {
-            Dependency(str(entries("project")), artifact(entries("artifact")))
-          }
-          depmap(projectName) = deps
-        }
+    val config = ConfigFactory.parseFile(file)
+    for ((name, _) <- config.root.asScala) {
+      depmap(name) = for (dep <- config.getConfigList(name).asScala) yield {
+        Dependency(
+          dep.getString("project"),
+          artifact(dep.getStringList("artifact").asScala)
+        )
+      }
     }
     depmap
   }

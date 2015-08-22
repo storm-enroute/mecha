@@ -120,13 +120,21 @@ Create the `project/plugins.sbt` file and at the following:
     You don't need to define a project when you define a super-repo.
     The project is automatically defined for you from these three values.
 
-4. Last, creates a `repos.json` file in the super-repo root directory.
+4. Last, creates a `repos.conf` file in the super-repo root directory.
 This file contains information about subprojects in this super-repo.
 Initially, we can just keep add the super-project to it:
 
+        # The configuration file is empty for now.
+
+    The syntax in the configuration file is HOCON.
+    Alternatively, you can use JSON syntax for the project configuration file.
+    Simply name the file `repos.json` and override the `repositoriesFile` method
+    in your project definition to return `repos.json`.
+    Then, add the empty JSON object inside that file:
+
         {}
 
-    The `repos.json` file is called the *super-repo configuration file*.
+    The `repos.conf` file is called the *super-repo configuration file*.
     At this point we can start SBT inside the super-repo.
 
 
@@ -143,7 +151,7 @@ variable.
 Let's start SBT inside `mecha-super-repo`.
 The first Mecha command that you need to know about is `mecha-ls`.
 This command will print all the subprojects from the super-repo configuration in
-`repos.json`.
+`repos.conf`.
 If we run it for an empty configuration file, we get:
 
     > mecha-ls
@@ -155,7 +163,15 @@ Assume that you have a project `examples-core-utils`, which contains core utilit
 You would like to make changes its nightly version,
 but you want to use them right away (to verify that your changes work).
 The solution is to include `examples-core-utils` to our super-repo config in
-`repos.json` (use your own fork for `origin` below, or create a fresh repo):
+`repos.conf` (use your own fork for `origin` below, or create a fresh repo):
+
+    examples-core-utils {
+      dir = "examples-core-utils"
+      origin = "git@github.com:storm-enroute/examples-core-utils.git"
+      mirrors = []
+    }
+
+Alternatively, if you're using JSON syntax:
 
     {
       "examples-core-utils": {
@@ -207,14 +223,14 @@ To avoid accidentally committing `examples-core-utils` to the super-repo,
 we will add `examples-core-utils` to the `.gitignore` file.
 
 The `examples-application` project uses `examples-core-utils` for its benchmarks.
-Let's add `examples-application` to `repos.json` too:
+Let's add `examples-application` to `repos.conf` too:
 
     ...
-    "examples-application": {
-      "dir": "examples-application",
-      "origin": "git@github.com:storm-enroute/examples-application.git",
-      "mirrors": []
-    },
+    examples-application {
+      dir = "examples-application"
+      origin = "git@github.com:storm-enroute/examples-application.git"
+      mirrors = []
+    }
     ...
 
 And `reload` again -- `mecha-ls` now gives:
@@ -365,7 +381,7 @@ You can alternatively specify the branch name directly in the command line.
 
 #### Other Actions
 
-You can additionally specify a list of mirrors in `repos.json` for specific projects.
+You can additionally specify a list of mirrors in `repos.conf` for specific projects.
 If you do, you will be able to pull from and push to all the mirrors with
 `mecha-pull-mirror` and `mecha-push-mirror`.
 
@@ -442,7 +458,7 @@ We first need to convert the `examples-application` build into a Mecha repo buil
     Here, the crucial part is the `dependsOnSuperRepo` --
     **don't forget to add this or the dependencies won't be picked up!**
     The other crucial part is `libraryDependencies ++= superRepoDependencies`.
-    For `repoName`, use the same name as in the `repos.json` file from the super-repo.
+    For `repoName`, use the same name as in the `repos.conf` file from the super-repo.
 
 
 3. Run `reload` in the SBT shell and you've got a Mecha repo build.
@@ -543,8 +559,17 @@ To express this dependency, we need to:
 1. First remove the dependency on the other project
 from the `libraryDependencies` setting, if there is one.
 
-2. Next, create a `dependencies.json` file in the root directory
+2. Next, create a `dependencies.conf` file in the root directory
 of the `examples-application` project:
+
+        examples-application {
+          project = "examples-core-utils"
+          artifact = ["com.storm-enroute", "examples-core-utils", "0.1"]
+        }
+
+    Alternatively, you can use JSON syntax, and a `dependencies.json` file.
+    Simply override the `dependenciesPath` field in the project definition,
+    and add the following:
 
         {
           "examples-application": [
@@ -562,7 +587,7 @@ artifacts.
 
 We can also specify that the dependency is only on a specific project configuration:
 
-    "artifact": ["com.storm-enroute", "examples-core-utils", "0.1", "test"]
+    artifact = ["com.storm-enroute", "examples-core-utils", "0.1", "test"]
 
 Now we can e.g. call methods from `examples-core-utils`
 directly from `examples-application`.
