@@ -128,6 +128,7 @@ Initially, we can just add the super-project to it:
         our-super-project-name {
           dir = "."
           origin = "<path-at-github-or-bitbucket>"
+          mirrors = []
         }
 
     The syntax in the configuration file is HOCON.
