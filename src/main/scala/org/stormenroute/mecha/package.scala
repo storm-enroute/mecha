@@ -111,7 +111,7 @@ package mecha {
         flags: String = "", logger: ProcessLogger = PrintlnLogger): Boolean = {
       val dir = new File(path)
       val cmd = Seq("git", "push", flags, location, branch).filter(_ != "")
-      Process(cmd, dir).!<(logger) == 0
+      Process(cmd, dir).!(logger) == 0
     }
     def addAll(path: String): Boolean = {
       val dir = new File(path)
@@ -232,9 +232,13 @@ package object mecha {
   val PrintlnLogger = ProcessLogger(println, println)
 
   case class BufferedLogger() extends ProcessLogger with (() => String) {
-    val buf = mutable.ArrayBuffer[String]()
-    def err(s: =>String) = buf += s
-    def out(s: =>String) = buf += s
+    private val buf = mutable.ArrayBuffer[String]()
+    def err(s: =>String) = buf.synchronized {
+      buf += s
+    }
+    def out(s: =>String) = buf.synchronized {
+      buf += s
+    }
     def buffer[T](f: =>T) = f
     def apply() = {
       val s = buf.mkString("\n")
