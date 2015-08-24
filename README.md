@@ -365,7 +365,6 @@ If you do, the new branches are created.
 Let's check with `mecha-branch`:
 
     > mecha-branch
-    > mecha-branch
     [info] Repo 'examples-core-utils': topic/gitignore
     [info] Repo 'examples-application': topic/gitignore
 
