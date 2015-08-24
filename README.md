@@ -131,7 +131,8 @@ Initially, we can just add the super-project to it:
           mirrors = []
         }
 
-    The syntax in the configuration file is HOCON.
+    The syntax in the configuration file is
+    [HOCON](https://github.com/typesafehub/config).
     Alternatively, you can use JSON syntax for the project configuration file.
     Simply name the file `repos.json` and override the `repositoriesFile` method
     in your project definition to return `repos.json`.
