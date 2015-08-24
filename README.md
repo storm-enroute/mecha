@@ -120,11 +120,15 @@ Create the `project/plugins.sbt` file and at the following:
     You don't need to define a project when you define a super-repo.
     The project is automatically defined for you from these three values.
 
-4. Last, creates a `repos.conf` file in the super-repo root directory.
+4. Last, create a `repos.conf` file in the super-repo root directory.
 This file contains information about subprojects in this super-repo.
-Initially, we can just keep add the super-project to it:
+Initially, we can just add the super-project to it:
 
         # The configuration file is empty for now.
+        our-super-project-name {
+          dir = "."
+          origin = "<path-at-github-or-bitbucket>"
+        }
 
     The syntax in the configuration file is HOCON.
     Alternatively, you can use JSON syntax for the project configuration file.
@@ -132,7 +136,13 @@ Initially, we can just keep add the super-project to it:
     in your project definition to return `repos.json`.
     Then, add the empty JSON object inside that file:
 
-        {}
+        {
+          "our-super-project-name": {
+            "dir": ".",
+            "origin": "<path-at-github-or-bitbucket>",
+            "mirrors": []
+          }
+        }
 
     The `repos.conf` file is called the *super-repo configuration file*.
     At this point we can start SBT inside the super-repo.
