@@ -59,7 +59,7 @@ trait MechaSuperBuild extends Build {
   /** Holds the configuration of repositories in this superrepo.
    */
   val repositories: Map[String, Repo] = {
-    ConfigParsers.reposFromJson(repositoriesFile)
+    ConfigParsers.reposFromHocon(repositoriesFile)
   }
   
   override def projects: Seq[Project] = {

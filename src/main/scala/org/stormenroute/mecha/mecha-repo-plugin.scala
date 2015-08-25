@@ -41,7 +41,7 @@ trait MechaRepoBuild extends Build {
    */
   val repositories: Option[Map[String, Repo]] = {
     if (repositoriesFile.exists)
-      Some(ConfigParsers.reposFromJson(repositoriesFile))
+      Some(ConfigParsers.reposFromHocon(repositoriesFile))
     else None
   }
 
@@ -94,7 +94,7 @@ trait MechaRepoBuild extends Build {
    */
   val dependencies: Option[Map[String, Seq[MechaRepoPlugin.Dependency]]] = {
     if (dependenciesFile.exists)
-      Some(MechaRepoPlugin.dependenciesFromJson(dependenciesFile))
+      Some(MechaRepoPlugin.dependenciesFromHocon(dependenciesFile))
     else None
   }
 
@@ -460,7 +460,7 @@ object MechaRepoPlugin extends Plugin {
   /** Describes a project dependency. */
   case class Dependency(project: String, artifact: Option[Artifact])
 
-  def dependenciesFromJson(file: File): Map[String, Seq[Dependency]] = {
+  def dependenciesFromHocon(file: File): Map[String, Seq[Dependency]] = {
     import scala.annotation.unchecked
     import scala.collection.convert.decorateAsScala._
     val depmap = mutable.Map[String, Seq[Dependency]]()

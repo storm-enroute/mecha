@@ -249,13 +249,13 @@ package object mecha {
 
   object ConfigParsers {
 
-    /** Parse repository configuration from Json. */
-    def reposFromJson(file: File): Map[String, Repo] = {
+    /** Parse repository configuration from Hocon. */
+    def reposFromHocon(file: File): Map[String, Repo] = {
       import scala.collection.convert.decorateAsScala._
       val repomap = mutable.Map[String, Repo]()
       val config = ConfigFactory.parseFile(file)
-      for ((name, _) <- config.root.asScala) {
-        val repo = config.getConfig(name)
+      for ((name, r: ConfigObject) <- config.root.asScala) {
+        val repo = r.toConfig
         repomap(name) = Repo(
           dir = repo.getString("dir"),
           origin = repo.getString("origin"),
