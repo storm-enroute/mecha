@@ -13,7 +13,7 @@ WORKING_DIR=`mktemp -d`
 REPO_GIT_URL="git@github.com:storm-enroute/apidocs.git"
 SCALA_VERSION="2.10"
 DOCS_SUBDIR_NAME="$PROJECT_NAME/$VERSION/"
-DOCS_SOURCE_PATH="$SCRIPT_PATH/../target/scala-$SCALA_VERSION/api"
+DOCS_SOURCE_PATH="$SCRIPT_PATH/../target/scala-$SCALA_VERSION/sbt-0.13/api"
 
 pwd
 cp -R $DOCS_SOURCE_PATH $TMP_DOCS_DIR
