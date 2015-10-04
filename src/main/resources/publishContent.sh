@@ -18,9 +18,9 @@ cd $WORKING_DIR
 pwd
 
 if [ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1; then
-        echo "Already git repo."
+  echo "Already git repo."
 else
-        git clone $REPO_GIT_URL .
+  git clone $REPO_GIT_URL .
 fi
 
 git fetch --all

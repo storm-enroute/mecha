@@ -21,16 +21,16 @@ cd $WORKING_DIR
 pwd
 
 if [ -d .git ] || git rev-parse --git-dir > /dev/null 2>&1; then
-        echo "Already git repo."
+  echo "Already git repo."
 else
-        git clone $REPO_GIT_URL .
+  git clone $REPO_GIT_URL .
 fi
 
 git fetch --all
 git checkout gh-pages
 
 rm -rf $DOCS_SUBDIR_NAME
-mkdir $DOCS_SUBDIR_NAME
+mkdir --parents $DOCS_SUBDIR_NAME
 mv $TMP_DOCS_DIR/* $DOCS_SUBDIR_NAME
 rm -rf $TMP_DOCS_DIR
 echo "Moved docs dir."
