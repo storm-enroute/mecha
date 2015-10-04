@@ -187,6 +187,32 @@ package object mecha {
     "It is invoked by the nightly task."
   )
 
+  val mechaPublishBuildOutputKey = TaskKey[Unit](
+    "mecha-publish-build-output",
+    "Pushes build output to the Git repo, if defined in `mechaBuildOutputRepo`. " +
+    "It is invoked by the nightly task."
+  )
+
+  val mechaBuildOutputRepoKey = SettingKey[String](
+    "mecha-build-output-repo",
+    "The URL of the Git repo where build outputs are published."
+  )
+
+  val mechaBuildOutputBranchKey = SettingKey[String](
+    "mecha-build-output-branch",
+    "The branch where build outputs are published."
+  )
+
+  val mechaBuildOutputPathKey = SettingKey[String](
+    "mecha-build-output-path",
+    "The repo-relative path where build outputs are published."
+  )
+
+  val mechaBuildOutputSrcPathKey = SettingKey[String](
+    "mecha-build-output-src-path",
+    "The local path where build outputs are."
+  )
+
   val mechaBenchRepoKey = SettingKey[String](
     "mecha-bench-repo",
     "The URL of the Git repo where benchmarks are published."

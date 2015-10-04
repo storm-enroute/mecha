@@ -384,14 +384,32 @@ object MechaRepoPlugin extends Plugin {
     val gitUrl = mechaBenchRepoKey.value
     val branch = mechaBenchBranchKey.value
     val path = mechaBenchPathKey.value
-    val srcPath = mechaBenchSrcPathKey.value
     val contentSourcePath = mechaBenchSrcPathKey.value
     if (gitUrl == "" || branch == "" || path == "" || contentSourcePath == "") {
       warnNoPublish(log, "benchmarks", gitUrl, branch, path, contentSourcePath)
     } else {
-      val contentSubDir = s"$path/${version.value}/"
+      val contentSubDir = s"$path/"
       publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
-        contentSourcePath, contentSubDir)
+        contentSubDir, contentSourcePath)
+    }
+  }
+
+  val mechaPublishBuildOutputTask = mechaPublishBuildOutputKey := {
+    val log = streams.value.log
+    val gitUrl = mechaBuildOutputRepoKey.value
+    val branch = mechaBuildOutputBranchKey.value
+    val path = mechaBuildOutputPathKey.value
+    val contentSourcePath = mechaBuildOutputSrcPathKey.value
+    val formatter = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+    if (gitUrl == "" || branch == "" || path == "" || contentSourcePath == "") {
+      warnNoPublish(log, "build output", gitUrl, branch, path, contentSourcePath)
+    } else {
+      val now = new java.util.Date
+      val timestamp = formatter.format(now) + "_" +
+        scala.util.Random.alphanumeric.take(6).mkString
+      val contentSubDir = s"$path/$timestamp/"
+      publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
+        contentSubDir, contentSourcePath)
     }
   }
 
@@ -423,10 +441,18 @@ object MechaRepoPlugin extends Plugin {
     mechaDocsPathKey := "",
     mechaPublishDocsTask,
     mechaPublishDocsKey <<= mechaPublishDocsKey.dependsOn(packageDoc in Compile),
+    mechaBuildOutputRepoKey := "",
+    mechaBuildOutputBranchKey := "",
+    mechaBuildOutputPathKey := "",
+    mechaBuildOutputSrcPathKey := (baseDirectory.value / "target").toString,
+    mechaPublishBuildOutputTask,
+    mechaPublishBuildOutputKey <<=
+      mechaPublishBuildOutputKey.dependsOn(packageBin in Compile),
     mechaPublishKey := {},
     mechaNightlyKey := {},
     mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishBenchesKey),
     mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishDocsKey),
+    mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishBuildOutputKey),
     mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishKey),
     mechaNightlyKey <<= mechaNightlyKey.dependsOn(test in Test),
     mechaNightlyKey <<= mechaNightlyKey.dependsOn(packageBin in Compile)
