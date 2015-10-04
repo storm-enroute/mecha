@@ -1,6 +1,8 @@
 
 ![ ](/docs/mecha-logo-256-soft.png)
 
+[ScalaDoc API](http://storm-enroute.com/apidocs/mecha/0.3-SNAPSHOT/api/#package)
+
 ### Mecha -- SBT Plugin That Automates Development Workflow
 
 Ask yourself:
