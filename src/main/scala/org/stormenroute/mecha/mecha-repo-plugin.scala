@@ -345,12 +345,12 @@ object MechaRepoPlugin extends Plugin {
 
   private def publishContent(log: sbt.Logger, projectName: String, version: String,
     scalaVersion: String, repoGitUrl: String, branch: String, contentSubDir: String,
-    contentSourcePath: String): Unit = {
+    contentSourcePath: String, removeDirsBeforeDate: String): Unit = {
     val scriptFile = File.createTempFile("publish-content", ".sh")
     try {
       FileUtils.writeStringToFile(scriptFile, publishScript)
       val command = s"sh ${scriptFile.getPath} $projectName $version $scalaVersion " +
-        s"$repoGitUrl $branch $contentSubDir $contentSourcePath"
+        s"$repoGitUrl $branch $contentSubDir $contentSourcePath $removeDirsBeforeDate"
       command.!
     } finally {
       scriptFile.delete()
@@ -375,7 +375,7 @@ object MechaRepoPlugin extends Plugin {
       val contentSourcePath = (doc in Compile).value.toString
       val contentSubDir = s"$path/${version.value}/"
       publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
-        contentSubDir, contentSourcePath)
+        contentSubDir, contentSourcePath, removeDirsBeforeDate = "")
     }
   }
 
@@ -390,7 +390,7 @@ object MechaRepoPlugin extends Plugin {
     } else {
       val contentSubDir = s"$path/"
       publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
-        contentSubDir, contentSourcePath)
+        contentSubDir, contentSourcePath, removeDirsBeforeDate = "")
     }
   }
 
@@ -400,16 +400,20 @@ object MechaRepoPlugin extends Plugin {
     val branch = mechaBuildOutputBranchKey.value
     val path = mechaBuildOutputPathKey.value
     val contentSourcePath = mechaBuildOutputSrcPathKey.value
-    val formatter = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+    val expirationDays = mechaBuildOutputExpirationDaysKey.value
+    val timeFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd_HH-mm-ss")
+    val dateFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd")
     if (gitUrl == "" || branch == "" || path == "" || contentSourcePath == "") {
       warnNoPublish(log, "build output", gitUrl, branch, path, contentSourcePath)
     } else {
       val now = new java.util.Date
-      val timestamp = formatter.format(now) + "_" +
+      val nDaysAgo = new java.util.Date(
+        System.currentTimeMillis() - expirationDays * 1000 * 60 * 60 * 24)
+      val timestamp = timeFormatter.format(now) + "_" +
         scala.util.Random.alphanumeric.take(6).mkString
       val contentSubDir = s"$path/$timestamp/"
       publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
-        contentSubDir, contentSourcePath)
+        contentSubDir, contentSourcePath, dateFormatter.format(nDaysAgo))
     }
   }
 
@@ -445,6 +449,7 @@ object MechaRepoPlugin extends Plugin {
     mechaBuildOutputBranchKey := "",
     mechaBuildOutputPathKey := "",
     mechaBuildOutputSrcPathKey := (baseDirectory.value / "target").toString,
+    mechaBuildOutputExpirationDaysKey := 5,
     mechaPublishBuildOutputTask,
     mechaPublishBuildOutputKey <<=
       mechaPublishBuildOutputKey.dependsOn(packageBin in Compile),

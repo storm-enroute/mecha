@@ -9,6 +9,7 @@ REPO_GIT_URL="${4}"
 BRANCH="${5}"
 CONTENT_SUBDIR="${6}"
 CONTENT_SOURCE_PATH="${7}"
+REMOVE_BEFORE_DATE="${8}"
 TMP_CONTENT_DIR=`mktemp -d`
 WORKING_DIR=`mktemp -d`
 
@@ -31,14 +32,30 @@ mkdir --parents $CONTENT_SUBDIR
 mv $TMP_CONTENT_DIR/* $CONTENT_SUBDIR
 rm -rf $TMP_CONTENT_DIR
 echo "Moved content dir."
-ls -a
-git status
+
+# Remove outdated directories.
+if [ ! -z "$REMOVE_BEFORE_DATE" ]; then
+  cd $CONTENT_SUBDIR
+  cd ..
+  pwd
+  for FILE in *; do
+    echo "Checking age of $FILE"
+    DAT=`echo $FILE | grep -o '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`
+    if [ ! -z $DAT ]; then
+      if (( `date --date="$DAT" +%s` <= `date --date="$REMOVE_BEFORE_DATE" +%s` )); then
+        echo "Removing old entry: $FILE"
+        rm -rf $FILE
+      fi
+    fi
+  done
+fi
+cd $WORKING_DIR
 
 echo "Adding $CONTENT_SUBDIR."
 git add $CONTENT_SUBDIR
+git add -u
 git commit --amend -m "Updating $DIR_NAME."
 echo "Committed $CONTENT_SUBDIR."
-ls -a
 git push --force
 
 cd ..

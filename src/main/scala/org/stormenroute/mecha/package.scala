@@ -213,6 +213,11 @@ package object mecha {
     "The local path where build outputs are."
   )
 
+  val mechaBuildOutputExpirationDaysKey = SettingKey[Int](
+    "mecha-build-output-expiration-days",
+    "Number of days after which build results expire, and can be deleted."
+  )
+
   val mechaBenchRepoKey = SettingKey[String](
     "mecha-bench-repo",
     "The URL of the Git repo where benchmarks are published."
