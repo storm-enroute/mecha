@@ -42,7 +42,8 @@ if [ ! -z "$REMOVE_BEFORE_DATE" ]; then
     echo "Checking age of $FILE"
     DAT=`echo $FILE | grep -o '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'`
     if [ ! -z $DAT ]; then
-      if (( `date --date="$DAT" +%s` <= `date --date="$REMOVE_BEFORE_DATE" +%s` )); then
+      if [ "`date --date="$DAT" +%s`" -lt "`date --date="$REMOVE_BEFORE_DATE" +%s`" ]
+      then
         echo "Removing old entry: $FILE"
         rm -rf $FILE
       fi
