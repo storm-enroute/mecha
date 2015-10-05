@@ -153,6 +153,11 @@ package mecha {
       val dir = new File(path)
       Process(Seq("git", "merge", branch), dir).! == 0
     }
+    def sha(path: String): String = {
+      val dir = new File(path)
+      val cmd = Seq("git", "rev-parse", "HEAD")
+      Process(cmd, dir).!!
+    }
   }
 
 }
