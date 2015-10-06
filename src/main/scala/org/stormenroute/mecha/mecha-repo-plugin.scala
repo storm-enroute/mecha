@@ -414,6 +414,9 @@ object MechaRepoPlugin extends Plugin {
       val contentSubDir = s"$path/$timestamp/"
       publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
         contentSubDir, contentSourcePath, dateFormatter.format(nDaysAgo))
+      val latestContentSubDir = s"$path/latest/"
+      publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
+        contentSubDir, latestContentSubDir, removeDirsBeforeDate = "")
     }
   }
 
