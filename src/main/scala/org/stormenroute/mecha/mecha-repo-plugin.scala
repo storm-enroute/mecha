@@ -396,6 +396,7 @@ object MechaRepoPlugin extends Plugin {
 
   val mechaPublishBuildOutputTask = mechaPublishBuildOutputKey := {
     val log = streams.value.log
+    val repo = Repo(baseDirectory.value.getPath, "origin", Nil)
     val gitUrl = mechaBuildOutputRepoKey.value
     val branch = mechaBuildOutputBranchKey.value
     val path = mechaBuildOutputPathKey.value
@@ -409,11 +410,13 @@ object MechaRepoPlugin extends Plugin {
       val now = new java.util.Date
       val nDaysAgo = new java.util.Date(
         System.currentTimeMillis() - expirationDays * 1000 * 60 * 60 * 24)
-      val timestamp = timeFormatter.format(now) + "_" +
-        scala.util.Random.alphanumeric.take(6).mkString
+      val timestamp = timeFormatter.format(now) + "_" + Git.sha(repo.dir).take(8)
       val contentSubDir = s"$path/$timestamp/"
       publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
         contentSubDir, contentSourcePath, dateFormatter.format(nDaysAgo))
+      val latestContentSubDir = s"$path/latest/"
+      publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
+        latestContentSubDir, contentSourcePath, removeDirsBeforeDate = "")
     }
   }
 
