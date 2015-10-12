@@ -324,7 +324,7 @@ package object mecha {
     /* Combinators. */
 
     /** Basic query combinator -- asks user for input and retrieves a string. */
-    def stringQuery(question: String): Input.Query[String] = {
+    def stringQuery(question: String): Query[String] = {
       () => SimpleReader.readLine(question).filter(_ != "")
     }
 
