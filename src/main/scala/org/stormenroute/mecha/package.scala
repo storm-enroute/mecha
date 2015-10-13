@@ -18,12 +18,14 @@ import scala.sys.process._
 
 package mecha {
 
+  /** Logging interface. */
   trait MechaLog {
     def info(s: String): Unit
     def warn(s: String): Unit
     def error(s: String): Unit
   }
 
+  /** Standard logging interface implementations. */
   object MechaLog {
     object Println extends MechaLog {
       def info(s: String) = println(s)
