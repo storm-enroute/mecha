@@ -359,7 +359,11 @@ package object mecha {
     }
 
     def map[T, S](query: Query[T])(f: T => S): Query[S] = {
-      () => query().map(f)
+      () => for (x <- query()) yield f(x)
+    }
+
+    def flatMap[T, S](query: Query[T])(f: T => Query[S]): Query[S] = {
+      () => for (x <- query(); y <- f(x)()) yield y
     }
 
     def traverse[T](queries: Traversable[Query[T]]):
@@ -376,6 +380,7 @@ package object mecha {
 
   implicit class queryOps[T](val query: Input.Query[T]) {
     def map[S](f: T => S): Input.Query[S] = Input.map(query)(f)
+    def flatMap[S](f: T => Input.Query[S]): Input.Query[S] = Input.flatMap(query)(f)
     def default(v: =>T): Input.Query[T] = Input.default(query)(v)
   }
 
