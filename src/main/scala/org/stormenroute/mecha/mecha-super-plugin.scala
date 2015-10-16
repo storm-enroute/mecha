@@ -87,7 +87,7 @@ trait MechaSuperBuild extends Build {
         mechaEditRefreshKey <<= mechaEditRefreshKey.dependsOn(refreshes: _*),
         mechaNightlyKey <<= mechaNightlyKey.dependsOn(nightlies: _*)
       )
-    ))(_ aggregate _)
+    ))(_ dependsOn _)
     otherprojects ++ Seq(superproject)
   }
   
