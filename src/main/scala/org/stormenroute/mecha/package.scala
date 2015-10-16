@@ -18,12 +18,14 @@ import scala.sys.process._
 
 package mecha {
 
+  /** Logging interface. */
   trait MechaLog {
     def info(s: String): Unit
     def warn(s: String): Unit
     def error(s: String): Unit
   }
 
+  /** Standard logging interface implementations. */
   object MechaLog {
     object Println extends MechaLog {
       def info(s: String) = println(s)
@@ -329,7 +331,7 @@ package object mecha {
     /* Combinators. */
 
     /** Basic query combinator -- asks user for input and retrieves a string. */
-    def stringQuery(question: String): Input.Query[String] = {
+    def stringQuery(question: String): Query[String] = {
       () => SimpleReader.readLine(question).filter(_ != "")
     }
 
