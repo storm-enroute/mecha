@@ -366,6 +366,13 @@ package object mecha {
       () => for (x <- query()) yield f(x)
     }
 
+    def filter[T](query: Query[T])(p: T => Boolean): Query[T] = {
+      () => query() match {
+        case Some(v) => if (p(v)) Some(v) else None
+        case None => None
+      }
+    }
+
     def flatMap[T, S](query: Query[T])(f: T => Query[S]): Query[S] = {
       () => for (x <- query(); y <- f(x)()) yield y
     }
@@ -384,6 +391,7 @@ package object mecha {
 
   implicit class queryOps[T](val query: Input.Query[T]) {
     def map[S](f: T => S): Input.Query[S] = Input.map(query)(f)
+    def filter(p: T => Boolean): Input.Query[T] = Input.filter(query)(p)
     def flatMap[S](f: T => Input.Query[S]): Input.Query[S] = Input.flatMap(query)(f)
     def default(v: =>T): Input.Query[T] = Input.default(query)(v)
   }
