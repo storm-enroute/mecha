@@ -41,7 +41,8 @@ package mecha {
   /** Original repository within this multirepository,
     * in the `dir` directory.
     */
-  case class Repo(dir: String, origin: String, mirrors: Seq[String])
+  case class Repo(dir: String, origin: String, mirrors: Seq[String],
+    ref: Option[String] = None)
 
   /** Higher-level utility methods for working with repositories. */
   object Repo {
@@ -297,7 +298,8 @@ package object mecha {
         repomap(name) = Repo(
           dir = repo.getString("dir"),
           origin = repo.getString("origin"),
-          mirrors = repo.getStringList("mirrors").asScala
+          mirrors = repo.getStringList("mirrors").asScala,
+          ref = if (repo.hasPath("ref")) Some(repo.getString("ref")) else None
         )
       }
       repomap

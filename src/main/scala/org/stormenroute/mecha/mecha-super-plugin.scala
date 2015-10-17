@@ -70,8 +70,9 @@ trait MechaSuperBuild extends Build {
       dir = file(repo.dir)
       if dir.exists
       if superDirectory != dir
-    } yield {
-      RootProject(uri(repo.dir))
+    } yield repo.ref match {
+      case None => RootProject(uri(repo.dir))
+      case Some(r) => ProjectRef(uri(repo.dir), r)
     }
     val cleans = for (p <- subprojects) yield (clean in p)
     val nightlies = for (p <- subprojects) yield {
