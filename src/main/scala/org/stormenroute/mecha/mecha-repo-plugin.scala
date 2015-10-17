@@ -438,6 +438,7 @@ object MechaRepoPlugin extends Plugin {
     remoteDeployCmdKey := None,
     sshDeployTask,
     mechaEditRefreshKey := {},
+    mechaEditRefreshKey <<= mechaEditRefreshKey.dependsOn(compile in Compile),
     mechaBenchRepoKey := "",
     mechaBenchBranchKey := "",
     mechaBenchPathKey := "",
