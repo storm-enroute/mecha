@@ -377,6 +377,13 @@ package object mecha {
       () => for (x <- query(); y <- f(x)()) yield y
     }
 
+    def foreach[T, U](query: Query[T])(f: T => U): Unit = {
+      query() match {
+        case Some(v) => f(v)
+        case None => // do nothing
+      }
+    }
+
     def traverse[T](queries: Traversable[Query[T]]):
       Query[Traversable[Option[T]]] = {
       () => Some(for (q <- queries) yield q())
@@ -393,6 +400,7 @@ package object mecha {
     def map[S](f: T => S): Input.Query[S] = Input.map(query)(f)
     def filter(p: T => Boolean): Input.Query[T] = Input.filter(query)(p)
     def flatMap[S](f: T => Input.Query[S]): Input.Query[S] = Input.flatMap(query)(f)
+    def foreach[U](f: T => U): Unit = Input.foreach(query)(f)
     def default(v: =>T): Input.Query[T] = Input.default(query)(v)
   }
 
