@@ -676,11 +676,30 @@ You will need to specify these settings:
     ...
     mechaBenchRepoKey := "url of the git repo",
     mechaBenchBranchKey := "branch in the git repo",
-    mechaBenchPathKey := "subdirectory in the gir repo",
+    mechaBenchPathKey := "subdirectory in the git repo",
     mechaBenchSrcPathKey := (baseDirectory.value / "target/benchmarks").toString,
     ...
 
-See descriptions of these tasks for more info.
+See descriptions of these settings for more info.
+
+
+### Automated Build Deployment
+
+Automated build deployment is similar to docs and benchmark publishing,
+and is triggered with `mecha-publish-build` in the subproject.
+The difference is that each build is deployed to a subdirectory
+with a timestamp and SHA-1 has of the commit.
+You will need to specify these settings:
+
+    ...
+    mechaBuildOutputRepoKey := "url of the git repo where builds are copied",
+    mechaBuildOutputBranchKey := "branch in the git repo",
+    mechaBuildOutputPathKey := "subdirectory in the git repo",
+    mechaBuildOutputSrcPathKey := (baseDirectory.value / "target").toString,
+    mechaBuildOutputExpirationDaysKey := 5, // number of days builds before removing old builds
+    ...
+
+See the descriptions of these settings for more info.
 
 
 ### Nightly Task
