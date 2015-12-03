@@ -3,6 +3,13 @@
 
 [ScalaDoc API](http://storm-enroute.com/apidocs/mecha/0.3-SNAPSHOT/api/#package)
 
+
+CI service | Status | Description
+-----------|--------|------------
+Travis | [![Build Status](https://travis-ci.org/storm-enroute/mecha.png?branch=master)](https://travis-ci.org/storm-enroute/mecha) | Linux container tests
+Maven | [![Maven Artifact](https://img.shields.io/maven-central/v/com.storm-enroute/mecha_2.10.svg)](http://mvnrepository.com/artifact/com.storm-enroute/mecha_2.10) | Mecha artifact on Maven
+
+
 ### Mecha -- SBT Plugin That Automates Development Workflow
 
 Ask yourself:
