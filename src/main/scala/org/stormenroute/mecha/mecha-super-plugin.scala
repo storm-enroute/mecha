@@ -525,8 +525,9 @@ object MechaSuperPlugin extends Plugin {
   private def untrackedRepos(allRepos: Map[String, Repo]): Seq[String] = {
     for {
       repo <- allRepos.values.toSeq
+      if repo.dir != '.'
       dir = file(repo.dir)
-      if dir.exists
+      if !dir.exists
     } yield repo.dir
   }
 
