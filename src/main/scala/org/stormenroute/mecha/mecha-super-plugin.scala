@@ -113,6 +113,7 @@ trait MechaSuperBuild extends Build {
       commitTask,
       mergeTask,
       trackTask,
+      trackAllTask,
       mechaEditRefreshKey := {},
       mechaPublishKey := {},
       mechaNightlyKey := {},
@@ -479,16 +480,10 @@ object MechaSuperPlugin extends Plugin {
     } {}
   }
 
-  val trackKey = InputKey[Unit](
-    "mecha-track",
-    "Tracks a repository."
-  )
-
-  val trackTask = trackKey := {
-    val args = spaceDelimited(s"${reposKey.value.keys.mkString(", ")}").parsed
-    val log = streams.value.log
-    val dir = baseDirectory.value
-    for (arg <- args) reposKey.value.get(arg) match {
+  private def runTrackTask(
+    args: Seq[String], dir: File, allRepos: Map[String, Repo], log: sbt.Logger
+  ) {
+    for (arg <- args) allRepos.get(arg) match {
       case None =>
         log.error(s"Project '$arg' does not exist.")
       case Some(repo) =>
@@ -512,6 +507,39 @@ object MechaSuperPlugin extends Plugin {
             FileUtils.deleteDirectory(repodir)
         }
     }
+  }
+
+  val trackKey = InputKey[Unit](
+    "mecha-track",
+    "Tracks a repository."
+  )
+
+  val trackTask = trackKey := {
+    val args = spaceDelimited(s"${reposKey.value.keys.mkString(", ")}").parsed
+    val log = streams.value.log
+    val dir = baseDirectory.value
+    val allRepos = reposKey.value
+    runTrackTask(args, dir, allRepos, log)
+  }
+
+  private def untrackedRepos(allRepos: Map[String, Repo]): Seq[String] = {
+    for {
+      repo <- allRepos.values.toSeq
+      dir = file(repo.dir)
+      if dir.exists
+    } yield repo.dir
+  }
+
+  val trackAllKey = InputKey[Unit](
+    "mecha-track-all",
+    "Tracks all the repositories that have not yet been tracked."
+  )
+
+  val trackAllTask = trackAllKey := {
+    val log = streams.value.log
+    val dir = baseDirectory.value
+    val allRepos = reposKey.value
+    runTrackTask(untrackedRepos(allRepos), dir, allRepos, log)
   }
 
 }
