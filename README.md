@@ -3,6 +3,11 @@
 
 [ScalaDoc API](http://storm-enroute.com/apidocs/mecha/0.3-SNAPSHOT/api/#package)
 
+[![Build Status](https://travis-ci.org/storm-enroute/mecha.png?branch=master)](https://travis-ci.org/storm-enroute/mecha)
+
+[![Maven Artifact](https://img.shields.io/maven-central/v/com.storm-enroute/mecha.svg)](http://mvnrepository.com/artifact/com.storm-enroute/mecha)
+
+
 ### Mecha -- SBT Plugin That Automates Development Workflow
 
 Ask yourself:
