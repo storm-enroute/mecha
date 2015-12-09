@@ -35,3 +35,11 @@ build:
         fi
       done <cross.conf
     - tools/publishDocs.sh
+notify:
+  irc:
+    prefix: storm-enroute build
+    nick: eve-bot
+    channel: storm-enroute-dev
+    server:
+      host: chat.freenode.net
+      port: 6667
