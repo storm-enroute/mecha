@@ -5,6 +5,8 @@
 
 [![Build Status](https://travis-ci.org/storm-enroute/mecha.png?branch=master)](https://travis-ci.org/storm-enroute/mecha)
 
+[![Build Status](http://ci.storm-enroute.com:443/api/badges/storm-enroute/bundleboy/status.svg)](http://ci.storm-enroute.com:443/storm-enroute/bundleboy)
+
 [![Maven Artifact](https://img.shields.io/maven-central/v/com.storm-enroute/mecha.svg)](http://mvnrepository.com/artifact/com.storm-enroute/mecha)
 
 
