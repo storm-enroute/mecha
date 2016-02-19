@@ -120,7 +120,7 @@ trait MechaRepoBuild extends Build {
               Seq(from(dep.artifact, "Not in a superrepo."))
             case Some(repos) =>
               // inside superrepo
-              val repodir = new File(buildBase, "../" + repos(dep.project).dir)
+              val repodir = new File(buildBase, "../" + repos(dep.repo).dir)
               if (repodir.exists) Seq()
               else Seq(from(dep.artifact, "Repository not tracked."))
           }
@@ -146,10 +146,12 @@ trait MechaRepoBuild extends Build {
               false
             case Some(repos) =>
               // in a superrepo
-              val repodir = new File(buildBase, "../" + repos(dep.project).dir)
+              val repodir = new File(buildBase, "../" + repos(dep.repo).dir)
               repodir.exists
-          }).map(dep => RootProject(uri("../" + dep.project)))
-            .foldLeft(p)(_ dependsOn _)
+          }).map({
+            dep =>
+            ProjectRef(uri("../" + repositories.get(dep.repo).dir), dep.project)
+          }).foldLeft(p)(_ dependsOn _)
       }
     }
   }
@@ -493,7 +495,7 @@ object MechaRepoPlugin extends Plugin {
     configuration: Option[String])
 
   /** Describes a project dependency. */
-  case class Dependency(project: String, artifact: Option[Artifact])
+  case class Dependency(repo: String, project: String, artifact: Option[Artifact])
 
   def dependenciesFromHocon(file: File): Map[String, Seq[Dependency]] = {
     import scala.annotation.unchecked
@@ -509,6 +511,7 @@ object MechaRepoPlugin extends Plugin {
     for ((name, _) <- config.root.asScala) {
       depmap(name) = for (dep <- config.getConfigList(name).asScala) yield {
         Dependency(
+          dep.getString("repo"),
           dep.getString("project"),
           artifact(dep.getStringList("artifact").asScala)
         )
