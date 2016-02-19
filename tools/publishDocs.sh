@@ -39,7 +39,7 @@ ls -a
 git status
 
 echo "Adding $DOCS_SUBDIR_NAME."
-git add $DOCS_SUBDIR_NAME
+git add --all $DOCS_SUBDIR_NAME
 git commit --amend -m "Updating $DIR_NAME."
 echo "Committed $DOCS_SUBDIR_NAME."
 ls -a
