@@ -55,7 +55,7 @@ cd $WORKING_DIR
 echo "Adding $CONTENT_SUBDIR."
 git add $CONTENT_SUBDIR
 git add -u
-git commit --amend -m "Updating $DIR_NAME."
+git commit --amend -m "Updating $DIR_NAME." --quiet
 echo "Committed $CONTENT_SUBDIR."
 git push --force
 
