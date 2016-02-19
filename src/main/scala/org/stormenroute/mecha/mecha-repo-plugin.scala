@@ -104,7 +104,7 @@ trait MechaRepoBuild extends Build {
     def from(art: Option[Artifact], msg: String) = {
       val a = art.getOrElse(
           sys.error(s"Missing artifact information for '$projName'. $msg"))
-      var dep = a.group % a.project % a.version
+      var dep = a.group %% a.project % a.version
       a.configuration.foreach(c => dep = dep % c)
       dep
     }
