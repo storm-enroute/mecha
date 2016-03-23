@@ -290,13 +290,10 @@ object MechaSuperPlugin extends Plugin {
 
     ifClean(repos, log) {
       // pull from remote branches
-      for ((name, repo) <- repos) {
-        log.info(s"Pull repo '${repo.dir}' from origin...")
-        val pulls = for ((name, repo) <- repos) yield {
-          Repo.pull(log, name, repo, "origin")
-        }
-        Repo.awaitPulls(log, pulls)
+      val pulls = for ((name, repo) <- repos) yield {
+        Repo.pull(log, name, repo, "origin")
       }
+      Repo.awaitPulls(log, pulls)
     } {}
   }
 

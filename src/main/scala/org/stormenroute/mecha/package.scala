@@ -101,6 +101,7 @@ package mecha {
         log.info(s"------ $name ------")
         log.info(output())
       }
+      Await.ready(Future.sequence(pulls), Duration.Inf)
     }
   }
 
