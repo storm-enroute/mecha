@@ -62,6 +62,18 @@ package mecha {
       }
     }
 
+    def pull(log: MechaLog, name: String, repo: Repo, remoteName: String):
+      Future[(String, BufferedLogger)] = {
+      log.info(s"Pull '${repo.dir}' from '$remoteName'...")
+      val branch = Git.branchName(repo.dir)
+      val logger = BufferedLogger()
+      Future {
+        if (!Git.pull(repo.dir, remoteName, branch))
+          log.error(s"Pull failed: ${repo.dir}")
+        (name, logger)
+      }
+    }
+
     def push(log: MechaLog, flags: Seq[String], name: String, repo: Repo,
       remoteName: String): Future[(String, BufferedLogger)] = {
       log.info(s"Push '${repo.dir}' to '$remoteName'...")
@@ -81,6 +93,14 @@ package mecha {
         log.info(output())
       }
       Await.ready(Future.sequence(pushes), Duration.Inf)
+    }
+
+    def awaitPulls(log: MechaLog,
+      pulls: Traversable[Future[(String, BufferedLogger)]]): Unit = {
+      for (pull <- pulls; (name, output) <- pull) {
+        log.info(s"------ $name ------")
+        log.info(output())
+      }
     }
   }
 

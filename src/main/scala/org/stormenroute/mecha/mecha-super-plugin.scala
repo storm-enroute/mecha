@@ -292,8 +292,10 @@ object MechaSuperPlugin extends Plugin {
       // pull from remote branches
       for ((name, repo) <- repos) {
         log.info(s"Pull repo '${repo.dir}' from origin...")
-        if (!Git.pull(repo.dir, "origin"))
-          log.error(s"Pull failed: ${repo.dir}")
+        val pulls = for ((name, repo) <- repos) yield {
+          Repo.pull(log, name, repo, "origin")
+        }
+        Repo.awaitPulls(log, pulls)
       }
     } {}
   }
