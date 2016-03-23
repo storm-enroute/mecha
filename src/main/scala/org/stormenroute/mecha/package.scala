@@ -46,6 +46,8 @@ package mecha {
 
   /** Higher-level utility methods for working with repositories. */
   object Repo {
+    private val logLock = new AnyRef
+
     def commit(log: MechaLog, name: String, repo: Repo)(
       implicit reader: MechaReader): Unit = {
       if (!Git.addAll(repo.dir)) {
@@ -68,7 +70,7 @@ package mecha {
       val branch = Git.branchName(repo.dir)
       val logger = BufferedLogger()
       Future {
-        if (!Git.pull(repo.dir, remoteName, branch))
+        if (!Git.pull(repo.dir, remoteName, branch, logger))
           log.error(s"Pull failed: ${repo.dir}")
         (name, logger)
       }
@@ -88,20 +90,24 @@ package mecha {
 
     def awaitPushes(log: MechaLog,
       pushes: Traversable[Future[(String, BufferedLogger)]]): Unit = {
-      for (push <- pushes; (name, output) <- push) {
-        log.info(s"------ $name ------")
-        log.info(output())
+      val allPushes = for (push <- pushes) yield {
+        for ((name, output) <- push) yield logLock.synchronized {
+          log.info(s"------ $name ------")
+          log.info(output())
+        }
       }
-      Await.ready(Future.sequence(pushes), Duration.Inf)
+      Await.ready(Future.sequence(allPushes), Duration.Inf)
     }
 
     def awaitPulls(log: MechaLog,
       pulls: Traversable[Future[(String, BufferedLogger)]]): Unit = {
-      for (pull <- pulls; (name, output) <- pull) {
-        log.info(s"------ $name ------")
-        log.info(output())
+      val allPulls = for (pull <- pulls) yield {
+        for ((name, output) <- pull) yield logLock.synchronized {
+          log.info(s"------ $name ------")
+          log.info(output())
+        }
       }
-      Await.ready(Future.sequence(pulls), Duration.Inf)
+      Await.ready(Future.sequence(allPulls), Duration.Inf)
     }
   }
 
@@ -126,10 +132,11 @@ package mecha {
       val dir = new File(path)
       Process(Seq("git", "config", "--get", s"remote.$remoteName.url"), dir).!!.trim
     }
-    def pull(path: String, location: String, branch: String = ""): Boolean = {
+    def pull(path: String, location: String, branch: String = "",
+      logger: ProcessLogger = PrintlnLogger): Boolean = {
       val dir = new File(path)
       val cmd = Seq("git", "pull", location, branch).filter(_ != "")
-      Process(cmd, dir).! == 0
+      Process(cmd, dir).!(logger) == 0
     }
     def push(path: String, location: String, branch: String = "",
         flags: String = "", logger: ProcessLogger = PrintlnLogger): Boolean = {
