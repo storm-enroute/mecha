@@ -29,6 +29,8 @@ Ask yourself:
 
 - Are you looking for an easy way to configure the project when it's first checked out?
 
+- Looking for a faster edit-refresh cycle?
+
 - Or you want to quickly deploy your project over SSH to a remote server?
 
 If the answer is yes to any of the above, you're at the right place.
