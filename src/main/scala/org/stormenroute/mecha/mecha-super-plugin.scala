@@ -123,24 +123,6 @@ trait MechaSuperBuild extends Build {
     )
   }
 
-  // check if initial pull necessary
-  if (sys.env.get("MECHA_PULL_ON_INIT") == Some("true")) {
-    println("Performing initial pull.")
-    val trackedRepos = repositories.filter(p => file(p._2.dir).exists)
-    MechaSuperPlugin.ifClean(trackedRepos, MechaLog.Println) {
-      // pull from remote branches
-      for ((name, repo) <- trackedRepos) {
-        println(s"Pull repo '${repo.dir}' from origin...")
-        if (!Git.pull(repo.dir, "origin", "master"))
-          scala.Console.err.println(s"Pull failed: ${repo.dir}")
-      }
-    } {
-      sys.exit(1)
-    }
-  } else {
-    println("Environment variable MECHA_PULL_ON_INIT not set to true, no initial pull.")
-  }
-
 }
 
 
