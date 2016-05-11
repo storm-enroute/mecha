@@ -432,4 +432,113 @@ package object mecha {
     def default(v: =>T): Input.Query[T] = Input.default(query)(v)
   }
 
+  private[mecha] object GitIgnore {
+    import java.nio.charset.StandardCharsets._
+    import java.nio.file.{FileSystems, Paths, Files, Path}
+    import java.nio.file.StandardOpenOption._
+    import scala.collection.JavaConversions._
+
+    val log = MechaLog.Println
+
+    def readFile(file: Path): Seq[String] = {
+      Files.readAllLines(file, UTF_8)
+    }
+
+    def writeFile(file: Path, content: Seq[String]) = {
+      Files.write(file, content, UTF_8, WRITE, CREATE)
+    }
+
+    def ignore(toIgnore: String, gitIgnoreFilePath: Path, gitExcludeFilePath: Path) = {
+      val gitIgnore = if (Files.exists(gitIgnoreFilePath)) readFile(gitIgnoreFilePath) else Seq()
+      val gitExclude = if (Files.exists(gitExcludeFilePath)) readFile(gitExcludeFilePath) else Seq()
+
+      addIgnore(toIgnore, gitExclude, gitIgnore ++ gitExclude).fold(
+          {
+            case Whitelists(patterns) =>
+              log.warn(s"The new repo can not be ignored by Git. It is whitelisted by the following patterns: $patterns")
+            case Blacklists(patterns) =>
+              log.info(s"The new repo is already ignored via the following pattern(s): $patterns")
+          },
+          b => writeFile(gitExcludeFilePath, b))
+    }
+
+    sealed trait Patterns
+    case class Whitelists(patterns: Seq[WhitelistPattern]) extends Patterns
+    case class Blacklists(patterns: Seq[BlacklistPattern]) extends Patterns
+
+    def addIgnore(linesToAdd: String, excludeLines: Seq[String], allLines: Seq[String]): Either[Patterns, Seq[String]] = {
+      val patterns = allLines.map(Line.apply).filter(_.isInstanceOf[Pattern])
+      val wls = whitelists(linesToAdd, patterns)
+      if (wls.nonEmpty) Left(Whitelists(wls))
+      else {
+        val bls = blacklists(linesToAdd, patterns)
+        if (bls.nonEmpty) Left(Blacklists(bls))
+        else Right(excludeLines :+ linesToAdd)
+      }
+    }
+
+    def whitelists(toCheck: String, against: Seq[Line]): Seq[WhitelistPattern] =
+      against collect { case p: WhitelistPattern if p.matches(toCheck) => p }
+
+    def blacklists(toCheck: String, against: Seq[Line]): Seq[BlacklistPattern] =
+      against collect { case p: BlacklistPattern if p.matches(toCheck) => p }
+
+    object Line {
+      def apply(l: String): Line = l.trim match {
+        case "" => Empty
+        case s if s.startsWith("#") => Comment(s)
+        case s if s.startsWith("!") => WhitelistPattern(s.substring(1))
+        case s => BlacklistPattern(s)
+      }
+
+      def unapply(l: Line): Option[String] = l match {
+        case Empty => Some("")
+        case Comment(c) => Some(c)
+        case WhitelistPattern(p) => Some(s"!$p")
+        case BlacklistPattern(p) => Some(p)
+        case _ => None
+      }
+    }
+
+    sealed trait Line {
+      def matches(path: String): Boolean = false
+    }
+
+    object Empty extends Line
+    case class Comment(c: String) extends Line
+
+    abstract class Pattern extends Line {
+      val p: String
+      val trimmed = p.trim
+      val matcher = FileSystems.getDefault.getPathMatcher(s"glob:./${cleanUp(trimmed)}")
+
+      override def matches(dirName: String): Boolean = {
+        val path = if (!dirName.startsWith("./")) s"./$dirName" else dirName
+        matcher.matches(Paths.get(path))
+      }
+
+      @tailrec
+      private def cleanUp(s: String): String = {
+        if (s.endsWith("/")) cleanUp(s.substring(0, s.length - 1))
+        else if (s.startsWith("/")) cleanUp(s.substring(1))
+        else if (s.startsWith("**/")) cleanUp(s.substring(2))
+        else if (s.endsWith("/**")) cleanUp(s.substring(0, s.length - 2))
+        else s
+      }
+    }
+
+    /**
+      * E.g. "some-*-path/"
+      *
+      * @param p the pattern
+      */
+    case class BlacklistPattern(override val p: String) extends Pattern
+
+    /**
+      * E.g. "!some-*-path/"
+      *
+      * @param p the pattern
+      */
+    case class WhitelistPattern(override val p: String) extends Pattern
+  }
 }

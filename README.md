@@ -242,8 +242,16 @@ Then, `mecha-ls` shows that `examples-core-utils` is checked out (note the `*`):
     [info] [*] examples-core-utils
     [success] Total time: 0 s, completed May 23, 2015 12:40:52 AM
 
-To avoid accidentally committing `examples-core-utils` to the super-repo,
-we will add `examples-core-utils` to the `.gitignore` file.
+Mecha will automatically add `examples-core-utils` to the `.git/info/exclude` file in the
+ meta-repo so you don't accidentally commit it, unless it's already ignored via an existing
+ pattern in either `.gitignore` or `.git/info/exclude` \(e.g. you have `examples-core-*` in
+ either of the files).  
+If `examples-core-utils` is whitelisted by an existing pattern \(e.g. `!examples-core-*`),
+ Mecha will log a `warn`, and you'll need to remove the conflicting pattern, then manually
+ add `examples-core-utils` to the exclude file.  
+*Unlike `.gitignore`, `.git/info/exclude` doesn't need to be committed to the meta-repo \(it won't
+ show up in `untracked changes` if you edit it).*  
+For more info about `gitignore`, see the [official documentation](https://git-scm.com/docs/gitignore).
 
 The `examples-application` project uses `examples-core-utils` for its benchmarks.
 Let's add `examples-application` to `repos.conf` too:
@@ -262,7 +270,7 @@ And `reload` again -- `mecha-ls` now gives:
     [info] [ ] examples-application
     [info] [*] examples-core-utils
 
-Do `mecha-track`, add `examples-application` to `.gitignore` and `reload` once more,
+Do `mecha-track` for `examples-application` and `reload` once more,
 and now you're tracking both projects.
 Next, we will see how to pull from remote repositories.
 

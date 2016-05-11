@@ -480,6 +480,8 @@ object MechaSuperPlugin extends Plugin {
             val gitignore = new File(repodir, ".gitignore")
             if (gitignoreSample.exists)
               FileUtils.copyFile(gitignoreSample, gitignore)
+            val gitExcludePath = java.nio.file.Paths.get(".git", "info", "exclude")
+            GitIgnore.ignore(repodir.name, gitignore.toPath, gitExcludePath)
             log.warn(s"Please reload the sbt shell.")
           }
         } catch {
