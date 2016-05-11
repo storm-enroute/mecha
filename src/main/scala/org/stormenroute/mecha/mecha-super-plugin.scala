@@ -159,7 +159,9 @@ object MechaSuperPlugin extends Plugin {
     repos.filter(p => Git.isDirty(p._2.dir))
   }
 
-  def ifBranchInAll(repos: Map[String, Repo], log: Logger, name: String)(action: =>Unit): Unit = {
+  def ifBranchInAll(repos: Map[String, Repo], log: Logger, name: String)(
+    action: =>Unit
+  ): Unit = {
     val nonExisting = repos.filterNot(p => Git.branchExists(p._2.dir, name))
     if (nonExisting.nonEmpty) {
       for ((_, repo) <- nonExisting) {
@@ -170,7 +172,9 @@ object MechaSuperPlugin extends Plugin {
     }
   }
 
-  def ifBranchInNone(repos: Map[String, Repo], log: Logger, name: String)(action: =>Unit): Unit = {
+  def ifBranchInNone(repos: Map[String, Repo], log: Logger, name: String)(
+    action: =>Unit
+  ): Unit = {
     val existing = repos.filter(p => Git.branchExists(p._2.dir, name))
     if (existing.nonEmpty) {
       for ((_, repo) <- existing) {

@@ -1,11 +1,14 @@
 package org.stormenroute.mecha
 
+
+
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.core.Fragments
+import org.stormenroute.mecha.GitIgnore._
 
-import GitIgnore._
+
 
 @RunWith(value = classOf[JUnitRunner])
 class GitIgnoreSpec extends Specification {
@@ -80,30 +83,38 @@ class GitIgnoreSpec extends Specification {
 
   "Find all matches for a path given a list of patterns" >> {
     s"Find all 'blacklist' matches for '$newRepo'" >> {
-      blacklists(newRepo, (MatchingBlacklist ++ NonMatchingBlacklist).map(Line(_))) must_===
-        MatchingBlacklist.map(Line.apply).collect { case bl: BlacklistPattern => bl }
+      blacklists(newRepo,
+        (MatchingBlacklist ++ NonMatchingBlacklist).map(Line(_))) must_===
+          MatchingBlacklist.map(Line.apply).collect { case bl: BlacklistPattern => bl }
     }
 
     s"Find all 'whitelist' matches for '$newRepo'" >> {
-      whitelists(newRepo, (MatchingWhitelist ++ NonMatchingWhitelist).map(Line(_))) must_===
-        MatchingWhitelist.map(Line.apply).collect { case bl: WhitelistPattern => bl }
+      whitelists(newRepo,
+        (MatchingWhitelist ++ NonMatchingWhitelist).map(Line(_))) must_===
+          MatchingWhitelist.map(Line.apply).collect { case bl: WhitelistPattern => bl }
     }
   }
 
   "Find all matches for a path given ignore/exclude file(s)" >> {
     "Pattern not added because it is whitelisted" >> {
       val result = addIgnore(newRepo, Seq(), ignoreFile1 ++ ignoreFile2)
-      result.isLeft && (result.left.get must_=== Whitelists(Seq(WhitelistPattern("/some-path"))))
+      result.isLeft && (
+        result.left.get must_=== Whitelists(Seq(WhitelistPattern("/some-path")))
+      )
     }
 
     "Pattern not added because it is already blacklisted" >> {
       val result = addIgnore(newRepo, Seq(), ignoreFile1)
       result.isLeft && (result.left.get must_===
-        Blacklists(Seq(BlacklistPattern("some-path/"), BlacklistPattern("**/some-*"), BlacklistPattern("**/some-path/**"))))
+        Blacklists(Seq(
+          BlacklistPattern("some-path/"),
+          BlacklistPattern("**/some-*"),
+          BlacklistPattern("**/some-path/**"))))
     }
 
     "New pattern added to gitgnore/exclude" >> {
-      val result = addIgnore(newRepo, Seq("existing-pattern", "another-pattern", "yet-another_pattern"), ignoreFile3)
+      val result = addIgnore(newRepo,
+        Seq("existing-pattern", "another-pattern", "yet-another_pattern"), ignoreFile3)
       result.isRight && (result.right.get must_===
         Seq("existing-pattern", "another-pattern", "yet-another_pattern", "some-path"))
     }
