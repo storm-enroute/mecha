@@ -533,18 +533,16 @@ package object mecha {
       }
     }
 
-    /**
-      * E.g. "some-*-path/"
-      *
-      * @param p the pattern
-      */
+    /** E.g. "some-*-path/"
+     *
+     *  @param p the pattern
+     */
     case class BlacklistPattern(override val p: String) extends Pattern
 
-    /**
-      * E.g. "!some-*-path/"
-      *
-      * @param p the pattern
-      */
+    /** E.g. "!some-*-path/"
+     *
+     *  @param p the pattern
+     */
     case class WhitelistPattern(override val p: String) extends Pattern
   }
 }
