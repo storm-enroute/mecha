@@ -449,24 +449,30 @@ package object mecha {
     }
 
     def ignore(toIgnore: String, gitIgnoreFilePath: Path, gitExcludeFilePath: Path) = {
-      val gitIgnore = if (Files.exists(gitIgnoreFilePath)) readFile(gitIgnoreFilePath) else Seq()
-      val gitExclude = if (Files.exists(gitExcludeFilePath)) readFile(gitExcludeFilePath) else Seq()
+      val gitIgnore =
+        if (Files.exists(gitIgnoreFilePath)) readFile(gitIgnoreFilePath)
+        else Seq()
+      val gitExclude =
+        if (Files.exists(gitExcludeFilePath)) readFile(gitExcludeFilePath)
+        else Seq()
 
-      addIgnore(toIgnore, gitExclude, gitIgnore ++ gitExclude).fold(
-          {
-            case Whitelists(patterns) =>
-              log.warn(s"The new repo can not be ignored by Git. It is whitelisted by the following patterns: $patterns")
-            case Blacklists(patterns) =>
-              log.info(s"The new repo is already ignored via the following pattern(s): $patterns")
-          },
-          b => writeFile(gitExcludeFilePath, b))
+      addIgnore(toIgnore, gitExclude, gitIgnore ++ gitExclude).fold({
+          case Whitelists(patterns) =>
+            log.warn(s"The new repo can not be ignored by Git. " +
+              "It is whitelisted by the following patterns: $patterns")
+          case Blacklists(patterns) =>
+            log.info(s"The new repo is already ignored via the following " +
+              s"pattern(s): $patterns")
+      }, b => writeFile(gitExcludeFilePath, b))
     }
 
     sealed trait Patterns
     case class Whitelists(patterns: Seq[WhitelistPattern]) extends Patterns
     case class Blacklists(patterns: Seq[BlacklistPattern]) extends Patterns
 
-    def addIgnore(linesToAdd: String, excludeLines: Seq[String], allLines: Seq[String]): Either[Patterns, Seq[String]] = {
+    def addIgnore(
+      linesToAdd: String, excludeLines: Seq[String], allLines: Seq[String]
+    ): Either[Patterns, Seq[String]] = {
       val patterns = allLines.map(Line.apply).filter(_.isInstanceOf[Pattern])
       val wls = whitelists(linesToAdd, patterns)
       if (wls.nonEmpty) Left(Whitelists(wls))
