@@ -1,5 +1,5 @@
 build:
-  image: stormenroute/storm-enroute-build:0.7
+  image: stormenroute/storm-enroute-build:0.11
   cache:
     mount:
       - .ivy2
@@ -35,6 +35,8 @@ build:
         fi
       done <cross.conf
     - tools/publishDocs.sh
+    - git clone https://github.com/storm-enroute/dev-tools.git ~/.dev-tools
+    - ~/.dev-tools/lint -p .
 notify:
   irc:
     prefix: storm-enroute build
