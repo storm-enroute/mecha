@@ -39,8 +39,8 @@ package mecha {
   }
 
   /** Original repository within this multirepository,
-    * in the `dir` directory.
-    */
+   *  in the `dir` directory.
+   */
   case class Repo(dir: String, origin: String, mirrors: Seq[String],
     ref: Option[String] = None)
 
