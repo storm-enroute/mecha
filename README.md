@@ -12,6 +12,9 @@
 
 ### Mecha -- SBT Plugin That Automates Development Workflow
 
+An SBT plugin that allows you to work on multiple interdependent projects at the same
+time, as if they were a single project.
+
 Ask yourself:
 
 - Did you ever notice yourself working on 10 different projects that depend on each
