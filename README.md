@@ -17,16 +17,16 @@ time, as if they were a single project.
 
 Ask yourself:
 
-- Did you ever notice yourself working on 10 different projects that depend on each
-  other?
+- Did you ever notice yourself simultaneously working on 10 different projects that
+  depend on each other?
 
-- Is publishing a snapshots artifact from one project to compile another project killing
-  your productivity?
+- Is publishing a snapshot artifact from one project to compile another project slowing
+  you down and killing your productivity?
 
 - You feel your projects are bitrotting because they don't live in the same repository?
 
 - Did you ever want to simultaneously work on different Git code repositories as if they
-  were one big project, but commit changes to them separately?
+  were one big project, and commit changes to all of them at the same time?
 
 - Are automated nightlies and documentation publishing something you crave for?
 
