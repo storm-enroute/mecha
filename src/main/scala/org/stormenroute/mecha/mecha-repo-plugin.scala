@@ -148,10 +148,15 @@ trait MechaRepoBuild extends Build {
               // in a superrepo
               val repodir = new File(buildBase, "../" + repos(dep.repo).dir)
               repodir.exists
-          }).map({
-            dep =>
-            ProjectRef(uri("../" + repositories.get(dep.repo).dir), dep.project)
-          }).foldLeft(p)(_ dependsOn _)
+          }).foldLeft(p) { (proj, dep) =>
+            val other = ProjectRef(
+              uri("../" + repositories.get(dep.repo).dir),
+              dep.project)
+            dep.configuration match {
+              case Some(c) => proj.dependsOn(other % c)
+              case None => proj.dependsOn(other)
+            }
+          }
       }
     }
   }
@@ -495,7 +500,8 @@ object MechaRepoPlugin extends Plugin {
     configuration: Option[String])
 
   /** Describes a project dependency. */
-  case class Dependency(repo: String, project: String, artifact: Option[Artifact])
+  case class Dependency(repo: String, project: String, configuration: Option[String],
+    artifact: Option[Artifact])
 
   def dependenciesFromHocon(file: File): Map[String, Seq[Dependency]] = {
     import scala.annotation.unchecked
@@ -513,6 +519,10 @@ object MechaRepoPlugin extends Plugin {
         Dependency(
           dep.getString("repo"),
           dep.getString("project"),
+          {
+            if (dep.hasPath("configuration")) Some(dep.getString("configuration"))
+            else None
+          },
           artifact(dep.getStringList("artifact").asScala)
         )
       }
