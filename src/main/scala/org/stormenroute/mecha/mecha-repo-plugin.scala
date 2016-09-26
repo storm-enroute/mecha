@@ -130,7 +130,7 @@ trait MechaRepoBuild extends Build {
     requiredArtifacts
   }
 
-  implicit class ProjectOps(p: Project) {
+  implicit class ProjectOps(val p: Project) {
     /** Returns the version of the project depending directly on repositories
      *  in the superrepository, if a superrepository is present.
      */
