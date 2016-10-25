@@ -28,7 +28,7 @@ object MechaBuild extends Build {
 
   val mechaScalaVersion = "2.10.4"
 
-  val mechaSettings = Defaults.defaultSettings ++ Seq(
+  val mechaSettings = Seq(
     sbtPlugin := true,
     name := "mecha",
     scalaVersion := mechaScalaVersion,
