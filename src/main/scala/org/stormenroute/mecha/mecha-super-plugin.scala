@@ -487,18 +487,18 @@ object MechaSuperPlugin extends Plugin {
           log.info(s"Cloning '$arg' into '$repodir'.")
           if (!Git.clone(url, repo.dir)) sys.error(s"Clone failed.")
           else {
- 	    // Copy .gitignore sample file.
+            // Copy .gitignore sample file.
             val gitignoreSample = new File(repodir, ".gitignore-SAMPLE")
             val gitignore = new File(repodir, ".gitignore")
             if (gitignoreSample.exists)
               FileUtils.copyFile(gitignoreSample, gitignore)
             // Add excludes.
-	    val gitExcludePath = java.nio.file.Paths.get(".git", "info", "exclude")
+            val gitExcludePath = java.nio.file.Paths.get(".git", "info", "exclude")
             GitIgnore.ignore(repodir.name, gitignore.toPath, gitExcludePath)
-	    // Copy hooks.
+            // Copy hooks.
             val targetHookDir = new File(repodir, ".git/hooks")
             if (hookDir.exists)
-	      FileUtils.copyDirectory(hookDir, targetHookDir)
+              FileUtils.copyDirectory(hookDir, targetHookDir)
             log.warn(s"Please reload the sbt shell.")
           }
         } catch {
