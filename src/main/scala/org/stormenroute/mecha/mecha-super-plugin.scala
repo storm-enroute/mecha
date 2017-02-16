@@ -114,6 +114,7 @@ trait MechaSuperBuild extends Build {
       mergeTask,
       trackTask,
       trackAllTask,
+      hookSubdirectoryKey := "git-hooks",
       mechaEditRefreshKey := {},
       mechaPublishKey := {},
       mechaNightlyKey := {},
@@ -202,6 +203,11 @@ object MechaSuperPlugin extends Plugin {
   val trackedReposKey = SettingKey[Map[String, Repo]](
     "mecha-tracked-repos",
     "Information about the tracked repos."
+  )
+
+  val hookSubdirectoryKey = SettingKey[String](
+    "mecha-hook-subdirectory",
+    "Subdirectory for hooks shared across repositories."
   )
 
   val trackedReposTask = trackedReposKey := {
@@ -466,7 +472,8 @@ object MechaSuperPlugin extends Plugin {
   }
 
   private def runTrackTask(
-    args: Seq[String], dir: File, allRepos: Map[String, Repo], log: sbt.Logger
+    args: Seq[String], dir: File, hookDir: File, allRepos: Map[String, Repo],
+    log: sbt.Logger
   ) {
     for (arg <- args) allRepos.get(arg) match {
       case None =>
@@ -480,12 +487,18 @@ object MechaSuperPlugin extends Plugin {
           log.info(s"Cloning '$arg' into '$repodir'.")
           if (!Git.clone(url, repo.dir)) sys.error(s"Clone failed.")
           else {
+ 	    // Copy .gitignore sample file.
             val gitignoreSample = new File(repodir, ".gitignore-SAMPLE")
             val gitignore = new File(repodir, ".gitignore")
             if (gitignoreSample.exists)
               FileUtils.copyFile(gitignoreSample, gitignore)
-            val gitExcludePath = java.nio.file.Paths.get(".git", "info", "exclude")
+            // Add excludes.
+	    val gitExcludePath = java.nio.file.Paths.get(".git", "info", "exclude")
             GitIgnore.ignore(repodir.name, gitignore.toPath, gitExcludePath)
+	    // Copy hooks.
+            val targetHookDir = new File(repodir, ".git/hooks")
+            if (hookDir.exists)
+	      FileUtils.copyDirectory(hookDir, targetHookDir)
             log.warn(s"Please reload the sbt shell.")
           }
         } catch {
@@ -505,8 +518,9 @@ object MechaSuperPlugin extends Plugin {
     val args = spaceDelimited(s"${reposKey.value.keys.mkString(", ")}").parsed
     val log = streams.value.log
     val dir = baseDirectory.value
+    val hookDir = new File(hookSubdirectoryKey.value)
     val allRepos = reposKey.value
-    runTrackTask(args, dir, allRepos, log)
+    runTrackTask(args, dir, hookDir, allRepos, log)
   }
 
   private def untrackedRepos(allRepos: Map[String, Repo]): Seq[String] = {
@@ -526,8 +540,9 @@ object MechaSuperPlugin extends Plugin {
   val trackAllTask = trackAllKey := {
     val log = streams.value.log
     val dir = baseDirectory.value
+    val hookDir = new File(hookSubdirectoryKey.value)
     val allRepos = reposKey.value
-    runTrackTask(untrackedRepos(allRepos), dir, allRepos, log)
+    runTrackTask(untrackedRepos(allRepos), dir, hookDir, allRepos, log)
   }
 
 }
