@@ -289,12 +289,12 @@ package object mecha {
     "The repo-relative path where docs are published."
   )
 
-  val mechaNightlyKey = TaskKey[Unit](
+  val mechaNightlyTestKey = TaskKey[Unit](
     "mecha-nightly-test",
     "Runs the nightly tests: tests all projects, but does not publish anything."
   )
 
-  val mechaNightlyTestKey = TaskKey[Unit](
+  val mechaNightlyKey = TaskKey[Unit](
     "mecha-nightly",
     "Runs the nightly build: tests all projects, publishes snapshots, docs and benches."
   )
