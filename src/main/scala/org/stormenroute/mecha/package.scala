@@ -290,6 +290,11 @@ package object mecha {
   )
 
   val mechaNightlyKey = TaskKey[Unit](
+    "mecha-nightly-test",
+    "Runs the nightly tests: tests all projects, but does not publish anything."
+  )
+
+  val mechaNightlyTestKey = TaskKey[Unit](
     "mecha-nightly",
     "Runs the nightly build: tests all projects, publishes snapshots, docs and benches."
   )
