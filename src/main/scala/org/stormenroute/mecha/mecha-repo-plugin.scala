@@ -469,6 +469,7 @@ object MechaRepoPlugin extends Plugin {
     mechaNightlyTestKey <<= mechaNightlyTestKey.dependsOn(test in Test),
     mechaNightlyTestKey <<= mechaNightlyTestKey.dependsOn(packageBin in Compile),
     mechaNightlyKey := {},
+    mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaNightlyTestKey),
     mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishBenchesKey),
     mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishDocsKey),
     mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishBuildOutputKey),
