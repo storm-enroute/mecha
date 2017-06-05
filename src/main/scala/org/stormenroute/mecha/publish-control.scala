@@ -25,8 +25,12 @@ object Publish {
       }
       log.info(s"Creating $contentSubDir")
       (workingDir / contentSubDir).createDirectories()
-      log.info(s"Copying from $contentSourcePath to $contentSubDir")
-      File(contentSourcePath).copyTo(workingDir / contentSubDir)
+      if (File(contentSourcePath).exists) {
+        log.info(s"Copying from $contentSourcePath to $contentSubDir")
+        File(contentSourcePath).copyTo(workingDir / contentSubDir)
+      } else {
+        log.info(s"No content found in $contentSourcePath")
+      }
       log.info(s"Adding and pushing updated content to remote.")
       require(Git.addAll(workingPath))
       require(Git.amendCommit(workingPath, "Update content."))
