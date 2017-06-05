@@ -342,7 +342,7 @@ object MechaSuperPlugin extends Plugin {
       for ((name, repo) <- repos; mirror <- repo.mirrors) {
         log.info(s"Push '${repo.dir}' to '$mirror'...")
         val branch = Git.branchName(repo.dir)
-        if (!Git.push(repo.dir, mirror, branch, flags.mkString(" ")))
+        if (!Git.push(repo.dir, mirror, branch, flags))
           log.error(s"Push failed: ${repo.dir}")
       }
     } else {

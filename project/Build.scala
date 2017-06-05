@@ -38,6 +38,7 @@ object MechaBuild extends Build {
       "com.typesafe" % "config" % "1.2.1",
       "commons-io" % "commons-io" % "2.4",
       "com.decodified" %% "scala-ssh" % "0.7.0",
+      "com.github.pathikrit" %% "better-files" % "2.17.0",
       "org.specs2" %% "specs2-core" % "3.7.2" % "test",
       "org.specs2" %% "specs2-junit" % "3.7.2" % "test",
       "junit" % "junit" % "4.12" % "test"

@@ -168,12 +168,6 @@ trait MechaRepoBuild extends Build {
  */
 object MechaRepoPlugin extends Plugin {
 
-  implicit def logger2MechaLog(log: Logger) = new MechaLog {
-    def info(s: String) = log.info(s)
-    def warn(s: String) = log.warn(s)
-    def error(s: String) = log.error(s)
-  }
-
   implicit val reader = new MechaReader {
     def readLine(prompt: String) = SimpleReader.readLine(prompt)
   }
@@ -242,7 +236,8 @@ object MechaRepoPlugin extends Plugin {
       baseDirectory.value,
       baseDirectory.value / configFilePathKey.value,
       beforeGenerateConfigKey.value,
-      afterGenerateConfigKey.value)
+      afterGenerateConfigKey.value
+    )
   }
 
   val remoteSshHost = SettingKey[Option[String]](
@@ -396,8 +391,10 @@ object MechaRepoPlugin extends Plugin {
       warnNoPublish(log, "benchmarks", gitUrl, branch, path, contentSourcePath)
     } else {
       val contentSubDir = s"$path/"
-      publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
-        contentSubDir, contentSourcePath, removeDirsBeforeDate = "")
+      Publish.update(
+        log, name.value, version.value, scalaVersion.value, gitUrl, branch,
+        contentSubDir, contentSourcePath, removeDirsBeforeDate = ""
+      )
     }
   }
 
