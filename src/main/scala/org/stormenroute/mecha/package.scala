@@ -75,6 +75,12 @@ package object mecha {
     "It is invoked by the nightly task."
   )
 
+  val mechaPullBenchesKey = TaskKey[Unit](
+    "mecha-pull-benches",
+    "Pulls the benchmark results from the remote Git repo, " +
+    "if defined in `mechaBenchRepo`. This task deletes all local benchmark results."
+  )
+
   val mechaPublishBuildOutputKey = TaskKey[Unit](
     "mecha-publish-build-output",
     "Pushes build output to the Git repo, if defined in `mechaBuildOutputRepo`. " +

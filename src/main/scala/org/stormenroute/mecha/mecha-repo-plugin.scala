@@ -345,9 +345,11 @@ object MechaRepoPlugin extends Plugin {
     script
   }
 
-  private def publishContent(log: sbt.Logger, projectName: String, version: String,
+  private def publishContent(
+    log: sbt.Logger, projectName: String, version: String,
     scalaVersion: String, repoGitUrl: String, branch: String, contentSubDir: String,
-    contentSourcePath: String, removeDirsBeforeDate: String): Unit = {
+    contentSourcePath: String, removeDirsBeforeDate: String
+  ): Unit = {
     val scriptFile = File.createTempFile("publish-content", ".sh")
     try {
       FileUtils.writeStringToFile(scriptFile, publishScript)
@@ -359,8 +361,10 @@ object MechaRepoPlugin extends Plugin {
     }
   }
 
-  private def warnNoPublish(log: Logger, target: String, gitUrl: String, branch: String,
-    path: String, contentSourcePath: String) {
+  private def warnNoPublish(
+    log: Logger, target: String, gitUrl: String, branch: String,
+    path: String, contentSourcePath: String
+  ): Unit = {
     println(s"Not publishing $target due to incomplete configuration.")
     println(s"(url = '$gitUrl', branch = '$branch', path = '$path', " +
       s"srcPath = '$contentSourcePath')")
@@ -391,9 +395,25 @@ object MechaRepoPlugin extends Plugin {
       warnNoPublish(log, "benchmarks", gitUrl, branch, path, contentSourcePath)
     } else {
       val contentSubDir = s"$path/"
-      Publish.update(
+      Publish.push(
         log, name.value, version.value, scalaVersion.value, gitUrl, branch,
         contentSubDir, contentSourcePath, removeDirsBeforeDate = ""
+      )
+    }
+  }
+
+  val mechaPullBenchesTask = mechaPullBenchesKey := {
+    val log = streams.value.log
+    val gitUrl = mechaBenchRepoKey.value
+    val branch = mechaBenchBranchKey.value
+    val path = mechaBenchPathKey.value
+    val contentSourcePath = mechaBenchSrcPathKey.value
+    if (gitUrl == "" || branch == "" || path == "" || contentSourcePath == "") {
+      warnNoPublish(log, "benchmarks", gitUrl, branch, path, contentSourcePath)
+    } else {
+      val contentSubDir = s"$path/"
+      Publish.pull(
+        log, name.value, gitUrl, branch, contentSubDir, contentSourcePath
       )
     }
   }
@@ -448,6 +468,7 @@ object MechaRepoPlugin extends Plugin {
     mechaBenchPathKey := "",
     mechaBenchSrcPathKey := (baseDirectory.value / "target/benchmarks").toString,
     mechaPublishBenchesTask,
+    mechaPullBenchesTask,
     mechaDocsRepoKey := "",
     mechaDocsBranchKey := "",
     mechaDocsPathKey := "",
