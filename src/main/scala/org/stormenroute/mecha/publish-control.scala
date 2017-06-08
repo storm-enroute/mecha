@@ -7,11 +7,13 @@ import better.files._
 
 
 object Publish {
+  private val monitor = new AnyRef
+
   def push(
     log: sbt.Logger, projectName: String, version: String,
     scalaVersion: String, repoGitUrl: String, branch: String, contentSubDir: String,
     contentSourcePath: String, removeDirsBeforeDate: String
-  ): Unit = {
+  ): Unit = monitor.synchronized {
     val workingDir = File.newTemporaryDirectory()
     val workingPath = workingDir.pathAsString
     try {
@@ -43,7 +45,7 @@ object Publish {
   def pull(
     log: sbt.Logger, projectName: String, repoGitUrl: String, branch: String,
     contentSubDir: String, contentSourcePath: String
-  ): Unit = {
+  ): Unit = monitor.synchronized {
     val workingDir = File.newTemporaryDirectory()
     val workingPath = workingDir.pathAsString
     val contentSourceDir = File(contentSourcePath)
