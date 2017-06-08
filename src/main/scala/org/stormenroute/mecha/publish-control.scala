@@ -16,8 +16,9 @@ object Publish {
   ): Unit = monitor.synchronized {
     val workingDir = File.newTemporaryDirectory()
     val workingPath = workingDir.pathAsString
+    val contentSourceDir = File(contentSourcePath)
     try {
-      if (File(contentSourcePath).exists) {
+      if (!contentSourceDir.isEmpty) {
         log.info(s"Pushing content for $projectName")
         require(Git.clone(repoGitUrl, workingPath))
         require(Git.fetchAll(workingPath))
