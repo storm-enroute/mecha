@@ -15,26 +15,26 @@ object Publish {
     val workingDir = File.newTemporaryDirectory()
     val workingPath = workingDir.pathAsString
     try {
-      log.info(s"Pushing content for $projectName")
-      require(Git.clone(repoGitUrl, workingPath))
-      require(Git.fetchAll(workingPath))
-      require(Git.checkout(workingPath, branch))
-      if ((workingDir / contentSubDir).exists) {
-        log.info(s"Deleting contents of $contentSubDir")
-        (workingDir / contentSubDir).delete()
-      }
-      log.info(s"Creating $contentSubDir")
-      (workingDir / contentSubDir).createDirectories()
       if (File(contentSourcePath).exists) {
+        log.info(s"Pushing content for $projectName")
+        require(Git.clone(repoGitUrl, workingPath))
+        require(Git.fetchAll(workingPath))
+        require(Git.checkout(workingPath, branch))
+        if ((workingDir / contentSubDir).exists) {
+          log.info(s"Deleting contents of $contentSubDir")
+          (workingDir / contentSubDir).delete()
+        }
+        log.info(s"Creating $contentSubDir")
+        (workingDir / contentSubDir).createDirectories()
         log.info(s"Copying from $contentSourcePath to $contentSubDir")
         File(contentSourcePath).copyTo(workingDir / contentSubDir)
+        log.info(s"Adding and pushing updated content to remote.")
+        require(Git.addAll(workingPath))
+        require(Git.amendCommit(workingPath, "Update content."))
+        require(Git.forcePush(workingPath, "origin", branch))
       } else {
         log.info(s"No content found in $contentSourcePath")
       }
-      log.info(s"Adding and pushing updated content to remote.")
-      require(Git.addAll(workingPath))
-      require(Git.amendCommit(workingPath, "Update content."))
-      require(Git.forcePush(workingPath, "origin", branch))
     } finally {
       workingDir.delete()
     }
