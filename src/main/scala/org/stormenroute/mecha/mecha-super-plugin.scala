@@ -3,6 +3,8 @@ package org.stormenroute.mecha
 
 
 import java.io.File
+import java.nio.file._
+import java.nio.file.attribute.BasicFileAttributes
 import org.apache.commons.io._
 import sbt.{Future => _, _}
 import sbt.Keys._
@@ -497,8 +499,15 @@ object MechaSuperPlugin extends Plugin {
             GitIgnore.ignore(repodir.name, gitignore.toPath, gitExcludePath)
             // Copy hooks.
             val targetHookDir = new File(repodir, ".git/hooks")
-            if (hookDir.exists)
-              FileUtils.copyDirectory(hookDir, targetHookDir)
+            if (hookDir.exists) {
+              Files.walkFileTree(hookDir.toPath, new SimpleFileVisitor[Path] {
+                override def visitFile(file: Path, attrs: BasicFileAttributes) = {
+                  Files.copy(file, targetHookDir.toPath.resolve(file.getFileName),
+                    StandardCopyOption.COPY_ATTRIBUTES)
+                  FileVisitResult.CONTINUE;
+                }
+              })
+            }
             log.warn(s"Please reload the sbt shell.")
           }
         } catch {
