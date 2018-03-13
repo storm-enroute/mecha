@@ -1,6 +1,6 @@
 
 
-
+import sbt.ScriptedPlugin._
 import sbt._
 import Keys._
 import java.io._
@@ -78,7 +78,12 @@ object MechaBuild extends Build {
   lazy val mecha = Project(
     "mecha",
     file("."),
-    settings = mechaSettings
+    settings = mechaSettings ++ scriptedSettings ++ Seq(
+      scriptedLaunchOpts := { scriptedLaunchOpts.value ++
+        Seq("-Dplugin.version=" + version.value)
+      },
+      scriptedBufferLog := false
+    )
   )
 
 }

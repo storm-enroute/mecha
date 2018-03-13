@@ -1,0 +1,11 @@
+# check super-repo
+> mecha-ls
+> projects
+
+# check application source-level dependencies
+
+# when run sbt inside super-repo
+> checkApp
+
+# when run sbt directly in the app folder within super-repo
+> checkAppDirectly

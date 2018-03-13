@@ -1,0 +1,5 @@
+# first - publish utils artifact
+> publishUtilsLocal
+
+# check that app uses the published utils artifact
+> checkApp
