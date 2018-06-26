@@ -37,9 +37,14 @@ trait MechaProjectBuild {
     *
     * {{{
     * Seq(
-    *   ("repo-1", "project-id-1", Some("test"))
-    *   ("repo-1", "project-id-2", None)
-    *   ("repo-2", "project-id-3", None)
+    *   ("repo-1", "project-id-1", Some("test")),
+    *   ("repo-1", "project-id-2", None),
+    *   ("repo-2", "project-id-3", None),
+    *
+    *   // CrossProject IDs may end up with JVM/JS suffixes
+    *   //
+    *   ("repo-2", "project-idJVM", None),
+    *   ("repo-2", "project-idJS", None)
     * )
     * }}}
     */
@@ -53,20 +58,30 @@ trait MechaProjectBuild {
     *
     * {{{
     * Seq(
-    *   dependency1 -> ("repo-1", "project-id-1", Some("test"))
-    *   dependency2 -> ("repo-1", "project-id-2", None)
-    *   dependency3 -> ("repo-2", "project-id-3", None)
+    *   dependency1 -> ("repo-1", "project-id-1", Some("test")),
+    *   dependency2 -> ("repo-1", "project-id-2", None),
+    *   dependency3 -> ("repo-2", "project-id-3", None),
+    *
+    *   // CrossProject IDs may end up with JVM/JS suffixes
+    *   //
+    *   dependency4 -> ("repo-2", "project-idJVM", None),
+    *   dependency5 -> ("repo-2", "project-idJS", None)
     * )
     * }}}
     */
   def superRepoDependenciesMappings: Def.Initialize[Seq[(ModuleID, (String, String, Option[String]))]] = Def.setting {
     val deps = runtimeDependencies.value
 
-    superRepoProjectsDependencies.collect {
-      case projDep@(_, proj, _) if deps.exists(_.name == proj) =>
-        val dep = deps.find(_.name == proj).get
+    superRepoProjectsDependencies.flatMap { case projDep@(_, proj, _) =>
+      val projStripped = proj
+        .stripSuffix("JVM")
+        .stripSuffix("JS")
 
-        (dep, projDep)
+      deps.find(_.name == proj)
+        .orElse(deps.find(_.name == projStripped))
+        .map { dep =>
+          (dep, projDep)
+        }
     }
   }
 
