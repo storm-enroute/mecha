@@ -647,6 +647,90 @@ to `examples-application`:
 And hit `compile`.
 
 
+### Specifying Inter-Project Dependencies in the Source Code
+
+If you don't like using separate `dependencies.conf` file for specifying dependencies,
+you now have an option to specify dependencies in the source code of your build,
+and have all the dependencies in one place.
+
+Here is an example project build setup, in `project/Build.scala`:
+
+        import org.stormenroute.mecha._
+        import sbt._
+        import sbt.Keys._
+
+        object ExamplesApplicationBuild extends MechaProjectBuild {
+
+          lazy val examplesApplicationSettings = Defaults.defaultSettings ++
+            MechaRepoPlugin.defaultSettings ++ Seq(
+            name := "examples-application",
+            scalaVersion := "2.11.4",
+            version := "0.1",
+            organization := "com.storm-enroute",
+
+            // include dependencies as usual
+            libraryDependencies ++= runtimeDependencies.value,
+
+            // AT THE END of settings
+            // exclude dependencies based on super-repo, if any
+            libraryDependencies --= excludeSuperRepoDependencies.value
+          )
+
+          // put super-repo projects dependencies here
+          val superRepoProjectsDependencies: Seq[(String, String, Option[String])] = Seq(
+            // (repo, project, configuration)
+            ("examples-core-utils", "examples-core-utils", None)
+          )
+
+          // you can put ALL usual project dependencies here
+          val runtimeDependencies: Def.Initialize[Seq[ModuleID]] = Def.setting(Seq(
+            Def.setting("com.storm-enroute" %% "examples-core-utils" % "0.1").value,
+            Def.setting("org.scalatest" %% "scalatest" % "3.0.1" % "test").value
+          ))
+
+          val repoName = "examples-application"
+
+          lazy val examplesApplication: Project = Project(
+            "examples-application",
+            file("."),
+            settings = examplesApplicationSettings
+          ) dependsOnSuperRepo
+        }
+
+Here, the crucial parts are:
+- `dependsOnSuperRepo` **don't forget to add this or the dependencies won't be picked up!**
+- `libraryDependencies --= excludeSuperRepoDependencies.value` add this **AT THE END** of
+  project settings to exclude dependencies based on super-repo
+- For `repoName`, use the same name as in the `repos.conf` file from the super-repo
+- Instead of using `dependencies.conf` file you can now specify project dependencies inside
+  `superRepoProjectsDependencies` and `runtimeDependencies` lists,
+  they are described bellow
+
+Using `superRepoProjectsDependencies` you can specify a list of source-level dependencies
+on projects your project depend on inside the super-repo.
+
+And using `runtimeDependencies` you can specify a list of project runtime dependencies
+artifacts as usual, as if there is no super-repo, or repository is not tracked.
+
+We have to wrap dependencies inside `runtimeDependencies` into `Def.setting(...)`
+because of a `value` `sbt` macro, which is implicitly used when some cross-project
+dependencies are specified with the `%%%` macro, which in turn can only be used
+inside a setting definition:
+
+          val superRepoProjectsDependencies: Seq[(String, String, Option[String])] = Seq(
+            // repo, project, configuration
+            ("examples-core-utils", "examples-core-utils", None),
+            ("test-utils", "some-more-utils", Some("test")),
+            ("ui-repo", "some-js-project", None)
+          )
+
+          val runtimeDependencies: Def.Initialize[Seq[ModuleID]] = Def.setting(Seq(
+            Def.setting("com.storm-enroute" %% "examples-core-utils" % "0.1").value,
+            Def.setting("com.storm-enroute" %% "some-more-utils" % "0.1" % "test").value,
+            Def.setting("com.storm-enroute" %%% "some-js-project" % "0.1").value
+          ))
+
+
 ### Edit-Refresh Task
 
 Mecha comes with a special `mechaEditRefresh` task that supports fast edit-refresh
