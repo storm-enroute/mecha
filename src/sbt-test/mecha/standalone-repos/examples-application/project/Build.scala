@@ -8,7 +8,7 @@ object ExamplesApplicationBuild extends MechaProjectBuild {
   lazy val examplesApplicationSettings = Defaults.coreDefaultSettings ++
     MechaRepoPlugin.defaultSettings ++ Seq(
     name := "examples-application",
-    scalaVersion := "2.11.4",
+    scalaVersion := "2.12.1",
     version := "0.1.0-SNAPSHOT",
     organization := "com.storm-enroute",
 
@@ -36,7 +36,8 @@ object ExamplesApplicationBuild extends MechaProjectBuild {
 
   lazy val examplesApplication: Project = Project(
     "examples-application",
-    file("."),
-    settings = examplesApplicationSettings
-  ) dependsOnSuperRepo
+    file(".")
+  ).settings(
+    examplesApplicationSettings
+  ).dependsOnSuperRepo
 }

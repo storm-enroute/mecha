@@ -6,6 +6,7 @@ import com.decodified.scalassh._
 import com.typesafe.config._
 import java.io.File
 import org.apache.commons.io._
+import scala.collection.JavaConverters._
 import sbt._
 import sbt.Keys._
 import sbt.complete.DefaultParsers._
@@ -13,11 +14,12 @@ import scala.collection._
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
+import scala.sys.process.Process
 
 
 
 /** Optionally mixed into repositories within a superrepository. */
-trait MechaRepoBuild extends Build {
+trait MechaRepoBuild {
   import MechaRepoPlugin.Artifact
 
   /* Basic superrepo configuration */
@@ -166,7 +168,7 @@ trait MechaRepoBuild extends Build {
 
 /** Added to each repository inside the superrepository.
  */
-object MechaRepoPlugin extends Plugin {
+object MechaRepoPlugin {
 
   implicit val reader = new MechaReader {
     def readLine(prompt: String) = SimpleReader.readLine(prompt)
@@ -355,7 +357,7 @@ object MechaRepoPlugin extends Plugin {
       FileUtils.writeStringToFile(scriptFile, publishScript)
       val command = s"sh ${scriptFile.getPath} $projectName $version $scalaVersion " +
         s"$repoGitUrl $branch $contentSubDir $contentSourcePath $removeDirsBeforeDate"
-      command.!
+      Process(command).!
     } finally {
       scriptFile.delete()
     }
@@ -375,11 +377,11 @@ object MechaRepoPlugin extends Plugin {
     val gitUrl = mechaDocsRepoKey.value
     val branch = mechaDocsBranchKey.value
     val path = mechaDocsPathKey.value
+    val contentSourcePath = (doc in Compile).value.toString
+    val contentSubDir = s"$path/${version.value}/"
     if (gitUrl == "" || branch == "" || path == "") {
       warnNoPublish(log, "docs", gitUrl, branch, path, "<srcPath not required>")
     } else {
-      val contentSourcePath = (doc in Compile).value.toString
-      val contentSubDir = s"$path/${version.value}/"
       publishContent(log, name.value, version.value, scalaVersion.value, gitUrl, branch,
         contentSubDir, contentSourcePath, removeDirsBeforeDate = "")
     }
@@ -454,7 +456,7 @@ object MechaRepoPlugin extends Plugin {
       (log, base) => {}
     },
     generateConfigFileTask,
-    (compile in Compile) <<= (compile in Compile).dependsOn(generateConfigFileKey),
+    (compile in Compile) := (compile in Compile).dependsOn(generateConfigFileKey).value,
     remoteSshHost := None,
     remoteSshUser := "admin",
     remoteSshPass := None,
@@ -462,7 +464,7 @@ object MechaRepoPlugin extends Plugin {
     remoteDeployCmdKey := None,
     sshDeployTask,
     mechaEditRefreshKey := {},
-    mechaEditRefreshKey <<= mechaEditRefreshKey.dependsOn(compile in Compile),
+    mechaEditRefreshKey := mechaEditRefreshKey.dependsOn(compile in Compile).value,
     mechaBenchRepoKey := "",
     mechaBenchBranchKey := "",
     mechaBenchPathKey := "",
@@ -473,25 +475,25 @@ object MechaRepoPlugin extends Plugin {
     mechaDocsBranchKey := "",
     mechaDocsPathKey := "",
     mechaPublishDocsTask,
-    mechaPublishDocsKey <<= mechaPublishDocsKey.dependsOn(packageDoc in Compile),
+    mechaPublishDocsKey := mechaPublishDocsKey.dependsOn(packageDoc in Compile).value,
     mechaBuildOutputRepoKey := "",
     mechaBuildOutputBranchKey := "",
     mechaBuildOutputPathKey := "",
     mechaBuildOutputSrcPathKey := (baseDirectory.value / "target").toString,
     mechaBuildOutputExpirationDaysKey := 5,
     mechaPublishBuildOutputTask,
-    mechaPublishBuildOutputKey <<=
-      mechaPublishBuildOutputKey.dependsOn(packageBin in Compile),
+    mechaPublishBuildOutputKey :=
+      mechaPublishBuildOutputKey.dependsOn(packageBin in Compile).value,
     mechaPublishKey := {},
     mechaNightlyTestKey := {},
-    mechaNightlyTestKey <<= mechaNightlyTestKey.dependsOn(test in Test),
-    mechaNightlyTestKey <<= mechaNightlyTestKey.dependsOn(packageBin in Compile),
+    mechaNightlyTestKey := mechaNightlyTestKey.dependsOn(test in Test).value,
+    mechaNightlyTestKey := mechaNightlyTestKey.dependsOn(packageBin in Compile).value,
     mechaNightlyKey := {},
-    mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaNightlyTestKey),
-    mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishBenchesKey),
-    mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishDocsKey),
-    mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishBuildOutputKey),
-    mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishKey)
+    mechaNightlyKey := mechaNightlyKey.dependsOn(mechaNightlyTestKey).value,
+    mechaNightlyKey := mechaNightlyKey.dependsOn(mechaPublishBenchesKey).value,
+    mechaNightlyKey := mechaNightlyKey.dependsOn(mechaPublishDocsKey).value,
+    mechaNightlyKey := mechaNightlyKey.dependsOn(mechaPublishBuildOutputKey).value,
+    mechaNightlyKey := mechaNightlyKey.dependsOn(mechaPublishKey).value
   )
 
   /* various utilities */
@@ -525,7 +527,6 @@ object MechaRepoPlugin extends Plugin {
 
   def dependenciesFromHocon(file: File): Map[String, Seq[Dependency]] = {
     import scala.annotation.unchecked
-    import scala.collection.convert.decorateAsScala._
     val depmap = mutable.Map[String, Seq[Dependency]]()
     def artifact(v: Seq[String]) = (v: @unchecked) match {
       case Seq(org, proj, vers) =>

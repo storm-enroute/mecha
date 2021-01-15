@@ -2,13 +2,15 @@
 import org.stormenroute.mecha._
 import sbt.Keys._
 import sbt._
+import scala.sys.process.Process
 
 object MechaSuperRepoBuild extends MechaSuperBuild {
 
-  lazy val mechaSuperRepoSettings = Defaults.defaultSettings ++
-    defaultMechaSuperSettings ++ Seq(
+  def definition(): Project = superProject
+
+  lazy val mechaSuperRepoSettings = defaultMechaSuperSettings ++ Seq(
     name := superName,
-    scalaVersion := "2.11.4",
+    scalaVersion := "2.12.1",
     version := "0.1.0-SNAPSHOT",
     organization := "com.storm-enroute",
     libraryDependencies ++= Seq(),
@@ -25,11 +27,11 @@ object MechaSuperRepoBuild extends MechaSuperBuild {
       val pluginVersion = sys.props("plugin.version")
       println(s"pluginVersion: $pluginVersion")
 
-      val process = sbt.Process(
+      val process = Process(
         Seq("sbt", s"""-Dplugin.version=$pluginVersion""", proj, "assembly", "check"),
         file(".")
       )
-      val exitCode = (process!<)
+      val exitCode = (process.!<)
       if (exitCode != 0) {
         sys.error(s"Nonzero exit value: $exitCode")
       }
@@ -40,11 +42,11 @@ object MechaSuperRepoBuild extends MechaSuperBuild {
       val pluginVersion = sys.props("plugin.version")
       println(s"pluginVersion: $pluginVersion")
 
-      val process = sbt.Process(
+      val process = Process(
         Seq("sbt", s"""-Dplugin.version=$pluginVersion""", "clean", "assembly", "check"),
         file("examples-application")
       )
-      val exitCode = (process!<)
+      val exitCode = (process.!<)
       if (exitCode != 0) {
         sys.error(s"Nonzero exit value: $exitCode")
       }
@@ -52,7 +54,6 @@ object MechaSuperRepoBuild extends MechaSuperBuild {
     }
   )
    
-  val superName = "mecha-super-repo"
-  val superDirectory = file(".")
-  val superSettings = mechaSuperRepoSettings
+  override val superName = "mecha-super-repo"
+  override val superSettings = mechaSuperRepoSettings
 }

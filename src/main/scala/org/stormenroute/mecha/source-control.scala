@@ -5,7 +5,7 @@ package org.stormenroute.mecha
 import com.typesafe.config._
 import java.io._
 import org.apache.commons.io._
-import sbt.{Future => _, Process => _, ProcessLogger => _, _}
+import sbt._
 import sbt.Keys._
 import scala.annotation._
 import scala.collection._

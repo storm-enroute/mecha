@@ -1,10 +1,10 @@
 
 # idea
+.idea
 *.iml
 
 # configuration files
 config.sbt
 
 # workflow stuff
-.gitignore
 target
