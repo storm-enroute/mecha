@@ -11,9 +11,9 @@ VERSION="$mecha_major.$mecha_minor"
 TMP_DOCS_DIR=`mktemp -d`
 WORKING_DIR=`mktemp -d`
 REPO_GIT_URL="git@github.com:storm-enroute/apidocs.git"
-SCALA_VERSION="2.10"
+SCALA_VERSION="2.12"
 DOCS_SUBDIR_NAME="$PROJECT_NAME/$VERSION/"
-DOCS_SOURCE_PATH="$SCRIPT_PATH/../target/scala-$SCALA_VERSION/sbt-0.13/api"
+DOCS_SOURCE_PATH="$SCRIPT_PATH/../target/scala-$SCALA_VERSION/sbt-1.0/api"
 
 pwd
 cp -R $DOCS_SOURCE_PATH $TMP_DOCS_DIR

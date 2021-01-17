@@ -5,7 +5,8 @@ package org.stormenroute
 import com.typesafe.config._
 import java.io._
 import org.apache.commons.io._
-import sbt.{Future => _, Process => _, ProcessLogger => _, _}
+import scala.collection.JavaConverters._
+import sbt._
 import sbt.Keys._
 import scala.annotation._
 import scala.collection._
@@ -181,7 +182,6 @@ package object mecha {
 
     /** Parse repository configuration from Hocon. */
     def reposFromHocon(file: File): Map[String, Repo] = {
-      import scala.collection.convert.decorateAsScala._
       val repomap = mutable.Map[String, Repo]()
       val config = ConfigFactory.parseFile(file)
       for ((name, r: ConfigObject) <- config.root.asScala) {
@@ -193,7 +193,7 @@ package object mecha {
           ref = if (repo.hasPath("ref")) Some(repo.getString("ref")) else None
         )
       }
-      repomap
+      repomap.toMap
     }
 
     def versionFromFile(file: File, labels: List[String]): String = {
@@ -299,16 +299,15 @@ package object mecha {
     import java.nio.charset.StandardCharsets._
     import java.nio.file.{FileSystems, Paths, Files, Path}
     import java.nio.file.StandardOpenOption._
-    import scala.collection.JavaConversions._
 
     val log = MechaLog.Println
 
     def readFile(file: Path): Seq[String] = {
-      Files.readAllLines(file, UTF_8)
+      Files.readAllLines(file, UTF_8).asScala
     }
 
     def writeFile(file: Path, content: Seq[String]) = {
-      Files.write(file, content, UTF_8, WRITE, CREATE)
+      Files.write(file, content.asJava, UTF_8, WRITE, CREATE)
     }
 
     def ignore(toIgnore: String, gitIgnoreFilePath: Path, gitExcludeFilePath: Path) = {

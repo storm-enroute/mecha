@@ -115,26 +115,28 @@ Create the `project/plugins.sbt` file and at the following:
 3. Define a super-repo build in `project/Build.scala` as in the following example:
 
         object MechaSuperRepoBuild extends MechaSuperBuild {
-          lazy val mechaSuperRepoSettings = Defaults.defaultSettings ++
-            defaultMechaSuperSettings ++ Seq(
+
+          def definition(): Project = superProject
+
+          lazy val mechaSuperRepoSettings = defaultMechaSuperSettings ++ Seq(
             name := superName,
-            scalaVersion := "2.11.4",
+            scalaVersion := "2.12.1",
             version := "0.1",
             organization := "com.storm-enroute",
             libraryDependencies ++= Seq()
           )
           
-          val superName = "super-storm-enroute"
-          val superDirectory = file(".")
-          val superSettings = mechaSuperRepoSettings
+          override val superName = "super-storm-enroute"
+          override val superSettings = mechaSuperRepoSettings
         }
 
-    The values of particular importance here are `superName`, `superDirectory` and
-    `superSettings`.
-    You don't need to define a project when you define a super-repo.
-    The project is automatically defined for you from these three values.
+    The values of particular importance here are `superName` and `superSettings`.
 
-4. Last, create a `repos.conf` file in the super-repo root directory.
+4. Reference build definition from `build.sbt` as in the following example:
+
+        lazy val `super-storm-enroute` = MechaSuperRepoBuild.definition()
+
+5. Last, create a `repos.conf` file in the super-repo root directory.
 This file contains information about subprojects in this super-repo.
 Initially, we can just add the super-project to it:
 
@@ -469,10 +471,10 @@ We first need to convert the `examples-application` build into a Mecha repo buil
         import sbt.Keys._
         
         object ExamplesApplicationBuild extends MechaRepoBuild {
-          lazy val examplesApplicationSettings = Defaults.defaultSettings ++
-            MechaRepoPlugin.defaultSettings ++ Seq(
+
+          lazy val examplesApplicationSettings = MechaRepoPlugin.defaultSettings ++ Seq(
             name := "examples-application",
-            scalaVersion := "2.11.4",
+            scalaVersion := "2.12.1",
             version := "0.1",
             organization := "com.storm-enroute",
             libraryDependencies ++=
@@ -483,9 +485,10 @@ We first need to convert the `examples-application` build into a Mecha repo buil
 
           lazy val examplesApplication: Project = Project(
             "examples-application",
-            file("."),
-            settings = examplesApplicationSettings
-          ) dependsOnSuperRepo
+            file(".")
+          ).settings(
+            examplesApplicationSettings
+          ).dependsOnSuperRepo
         }
 
     Here, the crucial part is the `dependsOnSuperRepo` --
@@ -493,8 +496,11 @@ We first need to convert the `examples-application` build into a Mecha repo buil
     The other crucial part is `libraryDependencies ++= superRepoDependencies`.
     For `repoName`, use the same name as in the `repos.conf` file from the super-repo.
 
+3. Reference build definition from `build.sbt` as in the following example:
 
-3. Run `reload` in the SBT shell and you've got a Mecha repo build.
+        lazy val `examples-application` = ExamplesApplicationBuild.examplesApplication
+
+4. Run `reload` in the SBT shell and you've got a Mecha repo build.
 
 The `examples-application` can now do various powerful stuff.
 Let's get back to our config files.
@@ -661,10 +667,9 @@ Here is an example project build setup, in `project/Build.scala`:
 
         object ExamplesApplicationBuild extends MechaProjectBuild {
 
-          lazy val examplesApplicationSettings = Defaults.defaultSettings ++
-            MechaRepoPlugin.defaultSettings ++ Seq(
+          lazy val examplesApplicationSettings = MechaRepoPlugin.defaultSettings ++ Seq(
             name := "examples-application",
-            scalaVersion := "2.11.4",
+            scalaVersion := "2.12.1",
             version := "0.1",
             organization := "com.storm-enroute",
 
@@ -692,9 +697,10 @@ Here is an example project build setup, in `project/Build.scala`:
 
           lazy val examplesApplication: Project = Project(
             "examples-application",
-            file("."),
-            settings = examplesApplicationSettings
-          ) dependsOnSuperRepo
+            file(".")
+          ).settings(
+            examplesApplicationSettings
+          ).dependsOnSuperRepo
         }
 
 Here, the crucial parts are:

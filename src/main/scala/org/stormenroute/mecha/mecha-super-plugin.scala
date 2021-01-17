@@ -6,7 +6,7 @@ import java.io.File
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import org.apache.commons.io._
-import sbt.{Future => _, _}
+import sbt._
 import sbt.Keys._
 import sbt.complete.DefaultParsers._
 import scala.collection._
@@ -17,12 +17,13 @@ import scala.concurrent.duration._
 
 
 /** Mixed in with the superrepository root project. */
-trait MechaSuperBuild extends Build {
-  val superName: String
+trait MechaSuperBuild {
   
-  val superDirectory: File
+  def superName: String = "super-project"
   
-  val superSettings: Seq[Setting[_]]
+  def superDirectory: File = file(".")
+  
+  def superSettings: Seq[Def.Setting[_]] = Nil
   
   /** File that describes all the repositories in this superrepository.
    *
@@ -64,11 +65,9 @@ trait MechaSuperBuild extends Build {
     ConfigParsers.reposFromHocon(repositoriesFile)
   }
   
-  override def projects: Seq[Project] = {
-    val nothing = Def.task[Unit] {}
-    val otherprojects = super.projects
-    val subprojects = for {
-      (name, repo) <- repositories.toList
+  def projects: Seq[ProjectReference] = {
+    for {
+      (_, repo) <- repositories.toList
       dir = file(repo.dir)
       if dir.exists
       if superDirectory != dir
@@ -76,31 +75,34 @@ trait MechaSuperBuild extends Build {
       case None => RootProject(uri(repo.dir))
       case Some(r) => ProjectRef(uri(repo.dir), r)
     }
-    val cleans = for (p <- subprojects) yield (clean in p)
+  }
+  
+  def superProject: Project = {
+    val nothing = Def.task[Unit] {}
+    val subprojects = projects
+//    val cleans = for (p <- subprojects) yield (clean in p)
     val nightlies = for (p <- subprojects) yield {
       (mechaNightlyKey in p).or(nothing)
     }
     val refreshes = for (p <- subprojects) yield {
       (mechaEditRefreshKey in p).or(nothing)
     }
-    val superproject = subprojects.foldLeft(Project(
+    
+    subprojects.foldLeft(Project(
       superName,
-      superDirectory,
-      settings = superSettings ++ Seq(
-        mechaEditRefreshKey <<= mechaEditRefreshKey.dependsOn(refreshes: _*),
-        mechaNightlyKey <<= mechaNightlyKey.dependsOn(nightlies: _*)
+      superDirectory
+    ).settings(
+      superSettings ++ Seq(
+        mechaEditRefreshKey := mechaEditRefreshKey.dependsOn(refreshes: _*).value,
+        mechaNightlyKey := mechaNightlyKey.dependsOn(nightlies: _*).value
       )
     ))(_ aggregate _)
-    otherprojects ++ Seq(superproject)
   }
   
-  override def settings = super.settings ++ Seq(
-    MechaSuperPlugin.reposKey := repositories
-  )
-
-  lazy val defaultMechaSuperSettings = {
+  lazy val defaultMechaSuperSettings: Seq[Def.Setting[_]] = {
     import MechaSuperPlugin._
     Seq(
+      reposKey := repositories,
       trackedReposTask,
       lsTask,
       statusTask,
@@ -120,9 +122,9 @@ trait MechaSuperBuild extends Build {
       mechaEditRefreshKey := {},
       mechaPublishKey := {},
       mechaNightlyKey := {},
-      mechaNightlyKey <<= mechaNightlyKey.dependsOn(mechaPublishKey),
-      mechaNightlyKey <<= mechaNightlyKey.dependsOn(test in Test),
-      mechaNightlyKey <<= mechaNightlyKey.dependsOn(packageBin in Compile)
+      mechaNightlyKey := mechaNightlyKey.dependsOn(mechaPublishKey).value,
+      mechaNightlyKey := mechaNightlyKey.dependsOn(test in Test).value,
+      mechaNightlyKey := mechaNightlyKey.dependsOn(packageBin in Compile).value
     )
   }
 
@@ -131,7 +133,7 @@ trait MechaSuperBuild extends Build {
 
 /** Added to the root build of the superrepository.
  */
-object MechaSuperPlugin extends Plugin {
+object MechaSuperPlugin {
 
   class LoggerMechaLog(log: Logger) extends MechaLog {
     def info(s: String) = log.info(s)
